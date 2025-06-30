@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <h1>Welcome, {{name}}</h1>
+<table border="1">
+    <tr>
+        <th>User ID</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Address</th>
+        <th>Pincode</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
+            <td>{{ user[3] }}</td>
+            <td>{{ user[5] }}</td>
+            <td>{{ user[6] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+    <h4><a href = "{{url_for('home')}}">logout</a></h4>
+</body>
+</html>
