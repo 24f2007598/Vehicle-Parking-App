@@ -22,7 +22,7 @@ def init_db():
                 user_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 fname TEXT NOT NULL,
                 lname TEXT,
-                age INTEGER
+                age INTEGER,
                 gender TEXT,
                 email TEXT UNIQUE NOT NULL,
                 passwd TEXT NOT NULL,
@@ -102,7 +102,7 @@ def get_users():
         cur.execute('SELECT * FROM User')
         return cur.fetchall()
 
-@app.route('/')
+@app.route('/what')
 def defaultHome():
     return render_template('home.html')
 
@@ -110,15 +110,39 @@ def defaultHome():
 def home():
     return render_template('home.html')
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
+@app.route('/')
+def test():
+    boxes = 10   # total boxes
+    rows = 5    # button‐grid rows per box
+    cols = 4    # button‐grid cols per box
+    return render_template('test.html',
+                           boxes=boxes,
+                           rows=rows,
+                           cols=cols)
 
-@app.route('/adminDashboard')
+# ADMIN -----------------------------------------------------------------------------
+@app.route('/admin/home')
+def admin_home():
+    return render_template('adminHome.html')
+
+@app.route('/admin/dashboard')
 def admin_dashboard():
     users = get_users()
     return render_template('adminDashboard.html', name="Admin (Darth Vader)", users=users)
 
+@app.route('/admin/search')
+def admin_search():
+    return render_template('search.html')
+
+#-------------------------------------------------------------------------------------
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
+
+
+# SIGNIN LOGIN LOGOUT -------------------------------------------------------------------
 @app.route('/signup', methods=['POST', 'GET'])
 def sign_up():
     form = signUp(request.form)
@@ -139,7 +163,6 @@ def sign_up():
                     return redirect(url_for('login'))
             add_user(user_data)
             session['Fname'] = user_data['Fname']
-            session['Lname'] = user_data['Lname']
             return redirect(url_for('signupSuccess'))
         else:
             flash("All required fields must be filled correctly.")
@@ -163,7 +186,7 @@ def login():
 
             if email == 'anakin@gmail.com':
                 if pwd == 'padma':
-                    return redirect(url_for('admin_dashboard'))
+                    return redirect(url_for('admin_home'))
                 return render_template('login.html', form=form)
 
             for user in users:
