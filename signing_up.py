@@ -1,34 +1,77 @@
-from ipaddress import summarize_address_range
-from tkinter import Label
-from flask_wtf import Form
-from wtforms import TextAreaField, PasswordField, IntegerField, RadioField, SubmitField, EmailField
-from wtforms.validators import ValidationError, DataRequired
+from flask import Flask, render_template, request
+import sqlite3
+import os
 
-class signUp(Form):
-    Fname = TextAreaField(label = "First Name", validators = [DataRequired()])
-    Lname = TextAreaField(label = "Last Name",)
-    email = EmailField(label = "Email", validators = [DataRequired()])
-    passwd = PasswordField(label = "Password", validators = [DataRequired()])
-    gender = RadioField(label = "Gender", choices = [(c, c) for c in ['M', 'F']])
-    age = IntegerField(label = "Age")
+app = Flask(__name__)
+# Database file path
+app.config['DATABASE'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'employees.db')
 
-    submit = SubmitField("Signup")
+def get_db_connection():
+    conn = sqlite3.connect(app.config['DATABASE'])
+    conn.row_factory = sqlite3.Row
+    return conn
 
-class logIn(Form):
-    email = EmailField(label = "Email", validators = [DataRequired()])
-    passwd = PasswordField(label = "Password", validators = [DataRequired()])
-    submit = SubmitField("Login")
+# Initialize database with table and sample data
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # Create employees table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            age INTEGER,
+            department TEXT,
+            salary REAL
+        );
+    ''')
+    # Prepopulate sample employees if table is empty
+    cursor.execute('SELECT COUNT(*) as count FROM employees')
+    if cursor.fetchone()['count'] == 0:
+        sample = [
+            ('Alice', 30, 'HR', 50000),
+            ('Bob', 25, 'Engineering', 60000),
+            ('Charlie', 28, 'Sales', 55000)
+        ]
+        cursor.executemany(
+            'INSERT INTO employees (name, age, department, salary) VALUES (?, ?, ?, ?)',
+            sample
+        )
+        conn.commit()
+    conn.close()
 
-'''
-CREATE TABLE IF NOT EXISTS User (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT, --autoincrement
-    fname TEXT NOT NULL,
-    lname TEXT NOT NULL,
-    age INTEGER
-    email TEXT NOT NULL UNIQUE,
-    passwd TEXT NOT NULL,
-    address TEXT,
-    pincode TEXT,
-    no_spots_booked INTEGER DEFAULT 0;
-);
-'''
+@app.before_first_request
+def setup():
+    init_db()
+
+@app.route('/', methods=['GET', 'POST'])
+def update_employee():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    message = ''
+    if request.method == 'POST':
+        emp_id = request.form.get('emp_id')
+        # Collect only non-empty fields for update
+        fields = {}
+        for field in ('name', 'age', 'department', 'salary'):
+            value = request.form.get(field)
+            if value:
+                fields[field] = value
+        if emp_id and fields:
+            # Build dynamic SQL
+            set_clause = ', '.join(f"{k} = ?" for k in fields)
+            values = list(fields.values()) + [emp_id]
+            query = f"UPDATE employees SET {set_clause} WHERE id = ?"
+            cursor.execute(query, values)
+            conn.commit()
+            message = 'Employee updated successfully.'
+        else:
+            message = 'Please select an employee and provide at least one field to update.'
+    # Fetch current list for display
+    cursor.execute('SELECT * FROM employees')
+    employees = cursor.fetchall()
+    conn.close()
+    return render_template('update.html', employees=employees, message=message)
+
+if __name__ == '__main__':
+    app.run(debug=True)

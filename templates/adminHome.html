@@ -1,15 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Home Page</title>
-</head>
-<body>
-    <ul type = "None">
-      <li><a href = "{{url_for('admin_home')}}">home</a></li>
-      <li><a href = "{{url_for('admin_dashboard')}}">dashboard</a></li>
-      <li><a href = "{{url_for('admin_search')}}">search</a></li>
-      <li><a href = "{{url_for('home')}}">logout</a></li>
-    </ul>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+  <div class="boxes">
+    {% for _ in range(boxes) %}
+      <div class="box">
+<!--        <input type="text" placeholder="Enter name">-->
+        <h4>Lot Number</h4>
+        <div class="buttons">
+        {% for i in range(spots) %}
+          <button type="button">{{ L[i] }}</button>
+        {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

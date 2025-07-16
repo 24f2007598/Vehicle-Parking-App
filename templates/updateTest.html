@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Update Employee Details</title>
+</head>
+<body>
+  <h1>Update Employee Details</h1>
+  {% if message %}
+    <p style="color: green;">{{ message }}</p>
+  {% endif %}
+  <form method="post">
+    <label for="emp_id">Select Employee:</label>
+    <select name="emp_id" id="emp_id">
+      <option value="">-- Select --</option>
+      {% for emp in employees %}
+        <option value="{{ emp['id'] }}">{{ emp['id'] }} - {{ emp['name'] }}</option>
+      {% endfor %}
+    </select><br><br>
+
+    <label for="name">Name:</label>
+    <input type="text" name="name" id="name"><br><br>
+
+    <label for="age">Age:</label>
+    <input type="number" name="age" id="age"><br><br>
+
+    <label for="department">Department:</label>
+    <input type="text" name="department" id="department"><br><br>
+
+    <label for="salary">Salary:</label>
+    <input type="text" name="salary" id="salary"><br><br>
+
+    <button type="submit">Update</button>
+  </form>
+
+  <h2>Current Employees</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+      <th>ID</th><th>Name</th><th>Age</th><th>Department</th><th>Salary</th>
+    </tr>
+    {% for emp in employees %}
+    <tr>
+      <td>{{ emp['id'] }}</td>
+      <td>{{ emp['name'] }}</td>
+      <td>{{ emp['age'] }}</td>
+      <td>{{ emp['department'] }}</td>
+      <td>{{ emp['salary'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

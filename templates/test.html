@@ -1,19 +1,37 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
+
 {% block content %}
-  <div class="boxes">
-    {% for _ in range(boxes) %}
-      <div class="box">
-<!--        <input type="text" placeholder="Enter name">-->
-        <h4>Lot Number</h4>
-        <div class="buttons">
-          {% for i in range(rows) %}
-            {% for j in range(cols) %}
-              <button type="button">{{ i * cols + j + 1 }}</button>
+  <form method="post" action="{{ url_for('test') }}">
+    <div class="boxes">
+      {# for each box b #}
+      {% for b in range(boxes_data|length) %}
+        <div class="box">
+          <h3>Lot Id {{ b }}</h3>
+          <div class="buttons">
+            {# for each button i in box b #}
+            {% for i in range(boxes_data[b]|length) %}
+              {% set btn_id = 'btn-{}-{}'.format(b, i) %}
+              <button
+                type="submit"
+                name="selected"
+                value="{{ btn_id }}"
+                class="{% if selected == btn_id %}selected{% endif %}"
+              >
+                {{ boxes_data[b][i] }}
+              </button>
             {% endfor %}
-          {% endfor %}
+          </div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
+  </form>
+
+  <form method="get" action="{{ url_for('spot_details') }}"
+        style="text-align:center; margin-top:20px;">
+    <input type="hidden" name="selected" value="{{ selected or '' }}">
+    <button type="submit" {% if not selected %}disabled{% endif %}>
+      OK
+    </button>
+  </form>
 {% endblock %}

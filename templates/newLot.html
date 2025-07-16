@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New Lot</title>
+</head>
+<body>
+    <h1>New Lot</h1>
+
+    {% for msg in form.address.errors %}
+    <div>{{msg}}</div>
+    {% endfor %}
+
+    {% for msg in form.pincode.errors %}
+    <div>{{msg}}</div>
+    {% endfor %}
+
+    {% for msg in form.price_per_hr.errors %}
+    <div>{{msg}}</div>
+    {% endfor %}
+
+    {% for msg in form.max_spots.errors %}
+    <div>{{msg}}</div>
+    {% endfor %}
+
+
+    <form action=http://127.0.0.1:5000/newlot method = 'post'>
+
+    <table>
+        <tr>
+            <td>{{form.address.label}}</td>
+            <td>{{form.address}}</td>
+        </tr>
+        <tr>
+            <td>{{form.pincode.label}}</td>
+            <td>{{form.pincode}}</td>
+        </tr>
+            <tr>
+            <td>{{form.price_per_hr.label}}</td>
+            <td>{{form.price_per_hr}}</td>
+        </tr>
+        <tr>
+            <td>{{form.max_spots.label}}</td>
+            <td>{{form.max_spots}}</td>
+        </tr>
+        <tr>
+            <td>{{form.submit}}</td>
+        </tr>
+</table>
+</form>
+</body>
+</html>

@@ -45,18 +45,47 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 5px;
     }
+        /* ---- Grid buttons ---- */
     .buttons button {
-      padding: 10px;
+      padding: 12px;                  /* a bit more breathing room */
       width: 100%;
       cursor: pointer;
+      border: 2px solid #000000;      /* blue outline */
+      border-radius: 8px;             /* rounded corners */
+      background-color: #E7F3FF;      /* very light blue fill */
+      font-size: 16px;
+      font-weight: 600;
+      transition:
+        background-color 0.2s,       /* smooth color fade */
+        transform 0.1s;               /* quick “lift” effect */
     }
+
+<!--    /* keyboard focus outline */-->
+<!--    .buttons button:focus {-->
+<!--      outline: none;-->
+<!--      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);-->
+<!--    }-->
+
+    /* selected “A” button stays yellow */
+    .selected {
+      background-color: #bcffb3 !important;
+      border-color: black !important;
+      color: black !important;
+    }
+    .o-btn {
+      background-color: #FDEDEC !important;
+      border-color:   #E57373 !important;
+      color:          #B71C1C  !important;
+    }
+      }
   </style>
 </head>
 <body>
   <nav class="nav">
-    <a href="{{ url_for('admin_home') }}">Home</a>
-    <a href="{{ url_for('admin_search') }}">Search</a>
-    <a href="{{ url_for('test') }}">Dashboard</a>
+    <a href = "{{url_for('admin_home')}}">home</a>
+    <a href = "{{url_for('admin_dashboard')}}">dashboard</a>
+    <a href = "{{url_for('admin_search')}}">search</a>
+    <a href = "{{url_for('home')}}">logout</a>
   </nav>
 
   {% block content %}{% endblock %}

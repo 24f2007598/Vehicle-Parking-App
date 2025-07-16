@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lots</title>
+</head>
+<body>
+<h2>Lot-{{lot[0]}}</h2>
+<table border="1">
+    <tr>
+        <th>Lot ID</th>
+        <th>Address</th>
+        <th>Pincode</th>
+        <th>Price (Per hr)</th>
+        <th>Max Number of Parking Spots</th>
+        <th>Time Stamp</th>
+    </tr>
+    <tr>
+            <td>{{ lot[0] }}</td>
+            <td>{{ lot[1] }}</td>
+            <td>{{ lot[2] }}</td>
+            <td>{{ lot[3] }}</td>
+            <td>{{ lot[4] }}</td>
+            <td>{{ lot[5] }}</td>
+    </tr>
+</table>
+
+    <form action=http://127.0.0.1:5000/lot/edit method = 'post'>
+    <table>
+        <tr>
+            <td>{{form.address.label}}</td>
+            <td>{{form.address}}</td>
+        </tr>
+        <tr>
+            <td>{{form.pincode.label}}</td>
+            <td>{{form.pincode}}</td>
+        </tr>
+            <tr>
+            <td>{{form.price_per_hr.label}}</td>
+            <td>{{form.price_per_hr}}</td>
+        </tr>
+        <tr>
+            <td>{{form.max_spots.label}}</td>
+            <td>{{form.max_spots}}</td>
+        </tr>
+</table>
+    <button type="submit" name="action" value="update">Update</button>
+    <button type="submit" name="action" value="cancel">Cancel</button>
+</form>
+
+</body>
+</html>
