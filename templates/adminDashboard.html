@@ -5,17 +5,27 @@
     <title>Dashboard</title>
 </head>
 <body>
+  <nav class="nav">
+    <a href = "{{url_for('admin_home')}}">Home</a>
+    <a href = "{{url_for('admin_dashboard')}}">Dashboard</a>
+    <a href = "{{url_for('admin_search')}}">Search</a>
+    <a href = "{{url_for('home')}}">Logout</a>
+  </nav>
+  
     <h1>Dashboard</h1>
     <h1>Welcome, {{name}}</h1>
+
+  <h4>User Details</h4>
 <table border="1">
     <tr>
         <th>User ID</th>
         <th>Name</th>
+        <th>Email</th>
         <th>Age</th>
         <th>Gender</th>
-        <th>Email</th>
-        <th>Password</th>
-        <th>Number of Spots Booked</th>
+        <th>Number of Spots Used In The Past</th>
+        <th>Number of Spots In Use</th>
+
     </tr>
     {% for user in users %}
     <tr>
@@ -26,6 +36,14 @@
             <td>{{ user[4] }}</td>
             <td>{{ user[5] }}</td>
             <td>{{ user[6] }}</td>
+                <td>
+                <form method="get" action="{{ url_for('user_details', userid=user[0]) }}">
+                    <button type="submit">
+                      VIEW DETAILS
+                    </button>
+                  </form>
+            </td>
+
     </tr>
     {% endfor %}
 </table>
@@ -41,6 +59,7 @@
         <th>Price (Per hr)</th>
         <th>Max Number of Parking Spots</th>
         <th>Time Stamp</th>
+        <th>Free Spots</th>
     </tr>
     {% for lot in lots %}
     <tr>
@@ -50,9 +69,10 @@
             <td>{{ lot[3] }}</td>
             <td>{{ lot[4] }}</td>
             <td>{{ lot[5] }}</td>
+            <td>{{ lot[6] }}</td>
+
             <td>
-                <form method="get" action="{{ url_for('edit_lot')}}">
-                    <input type="hidden" name="lotid" value="{{ lot[0] }}">
+                <form method="get" action="{{ url_for('edit_lot', lotid=lot[0]) }}">
                     <button type="submit">
                       EDIT
                     </button>
@@ -77,10 +97,56 @@
             <td>{{ spot[0] }}</td>
             <td>{{ spot[1] }}</td>
             <td>{{ spot[2] }}</td>
+        <td>
+                <form method="get" action="{{ url_for('spot_details', spotid=spot[0]) }}">
+                    <button type="submit">
+                      VIEW DETAILS
+                    </button>
+                  </form>
+            </td>
+    </tr>
+
+    {% endfor %}
+</table>
+
+<!--vehicles-->
+<table border="1">
+    <tr>
+        <th>Vehicle ID</th>
+        <th>User ID</th>
+        <th>Vehicle Number</th>
+
+    </tr>
+    {% for vh in vhs %}
+    <tr>
+            <td>{{ vh[0] }}</td>
+            <td>{{ vh[1] }}</td>
+            <td>{{ vh[2] }}</td>
     </tr>
     {% endfor %}
 </table>
 
+<!--bookings-->
+<table border="1">
+    <tr>
+        <th>Booking ID</th>
+        <th>Spot ID</th>
+        <th>Vehicle ID</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Status</th>
+    </tr>
+    {% for bk in bks %}
+    <tr>
+            <td>{{ bk[0] }}</td>
+            <td>{{ bk[1] }}</td>
+            <td>{{ bk[2] }}</td>
+            <td>{{ bk[3] }}</td>
+            <td>{{ bk[4] }}</td>
+            <td>{{ bk[5] }}</td>
+    </tr>
+    {% endfor %}
+</table>
 
 
 </body>

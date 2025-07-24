@@ -1,26 +1,59 @@
-{% extends 'base.html' %}
-{% block title %}Result{% endblock %}
-
-{% block content %}
-  <h2 style="text-align:center; margin-top:50px;">Selection Confirmed</h2>
-  {% if selected %}
-    <p style="text-align:center;">
-      You selected button with ID: <strong>{{ selected }}</strong>
-    </p>
-  {% else %}
-    <p style="text-align:center;">No valid selection detected.</p>
-  {% endif %}
-  <p style="text-align:center; margin-top:20px;">
-    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
-  </p>
-{% endblock %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Lots</title>
 </head>
 <body>
+<h2>Spot-{{spot[0]}}</h2>
+<table border="1">
+    <tr>
+        <th>Spot ID</th>
+        <th>lot Number</th>
+        <th>Pincode</th>
+        <th>Price (Per hr)</th>
+        <th>Address</th>
+        <th>STATUS</th>
+
+    </tr>
+    <tr>
+            <td>{{ spot[0] }}</td>
+            <td>{{ spot[1] }}</td>
+            <td>{{ spot[2] }}</td>
+            <td>{{ spot[3] }}</td>
+            <td>{{ spot[4] }}</td>
+            <td>{{ spot[5] }}</td>
+
+    </tr>
+</table>
+
+  {% if spot[5] == 'Occupied' %}
+<!--bookings-->
+
+
+<table border="1">
+    <tr>
+        <th>Booking ID</th>
+        <th>Spot ID</th>
+        <th>Vehicle ID</th>
+        <th>user ID</th>
+        <th>Start Time</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+            <td>{{ bk[0] }}</td>
+            <td>{{ bk[1] }}</td>
+            <td>{{ bk[2] }}</td>
+            <td>{{ bk[3] }}</td>
+            <td>{{ bk[4] }}</td>
+            <td>{{ bk[5] }}</td>
+    </tr>
+
+</table>
+            {% endif %}
+
+
 
 </body>
 </html>

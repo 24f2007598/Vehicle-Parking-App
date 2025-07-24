@@ -25,7 +25,7 @@
     </tr>
 </table>
 
-    <form action=http://127.0.0.1:5000/lot/edit method = 'post'>
+    <form action="{{ url_for('edit_lot', lotid=lot[0]) }}" method = 'post'>
     <table>
         <tr>
             <td>{{form.address.label}}</td>
@@ -45,6 +45,7 @@
         </tr>
 </table>
     <button type="submit" name="action" value="update">Update</button>
+    <button type="submit" name="action" value="delete">Delete</button>
     <button type="submit" name="action" value="cancel">Cancel</button>
 </form>
 

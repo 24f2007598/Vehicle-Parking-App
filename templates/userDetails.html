@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lots</title>
+</head>
+<body>
+<h2>User-{{user[0][0]}}: {{user[0][1]}}</h2>
+<table border="1">
+    <tr>
+        <th>Spot ID</th>
+        <th>Spots Already Used</th>
+        <th>Spots In Use</th>
+        <th>Total Parked Duration</th>
+    </tr>
+{% for use in user %}
+    <tr>
+            <td>{{ use[2] }}</td>
+            <td>{{ use[3] }}</td>
+            <td>{{ use[4] }}</td>
+            <td>{{ use[5] }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+</body>
+</html>
