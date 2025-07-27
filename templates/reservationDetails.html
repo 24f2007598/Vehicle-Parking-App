@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>reservation</title>
+</head>
+<body>
+<h3>Details of Reserved Spot</h3>
+
+<table border="1">
+    <tr>
+        <th>Spot ID</th>
+        <th>Vehicle Number</th>
+        <th>Total Parked Duration</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+            <td>{{ spot[3] }}</td>
+            <td>{{ spot[4] }}</td>
+            <td>{{ spot[6] }}</td>
+            <td>{{ spot[7] }}</td>
+</table>
+    <button type="submit" name="action" value="complete">RELEASE SPOT</button>
+    <button type="submit" name="action" value="back">BACK</button>
+</body>
+</html>

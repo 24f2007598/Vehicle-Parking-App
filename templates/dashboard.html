@@ -6,17 +6,53 @@
 </head>
 <body>
 <nav class="nav">
-    <a href = "{{url_for('dashboard')}}">Dashboard</a>
+    <a href = "{{url_for('dashboard', userid=userid)}}">Dashboard</a>
     <a href = "{{url_for('user_summary')}}">Summary</a>
     <a href = "{{url_for('home')}}">Logout</a>
 </nav>
-    <h1>Dashboard</h1>
+    <h1>Welcome, {{ details[0][2] }}</h1>
+<h5>Spots Already Used: {{ details[0][5] }}</h5>
+<h5>Spots In Use: {{ details[0][6] }}</h5>
+    <h3>Parking History</h3>
 
-    <h3>Recent Parking History</h3>
-    <h3>Search</h3>
+
+<table border="1">
+    <tr>
+        <th>Spot ID</th>
+        <th>Vehicle Number</th>
+        <th>Total Parked Duration</th>
+        <th>Status</th>
+    </tr>
+    {% for d in details %}
+    <tr>
+            <td>{{ d[3] }}</td>
+            <td>{{ d[4] }}</td>
+            <td>{{ d[7] }}</td>
+            <td>{{ d[8] }}</td>
+        {% if d[8] == 'Booked' %}
+            <td>
+                <form method="post" action="{{ url_for('reservation_details', spotid=d[2]) }}">
+                    <button type="submit">
+                      IN PROGRESS
+                    </button>
+                </form>
+            </td>
+        {% else %}
+            <td>
+                <form>
+                    <button type="button" disabled>
+                      COMPLETED
+                    </button>
+                  </form>
+            </td>
+            {% endif %}
+    </tr>
+    {% endfor %}
+
+</table>
 
 <!--lots-->
-    <h1>Lots</h1>
+    <h3>Lots You Can Book</h3>
 <table border="1">
     <tr>
         <th>Lot ID</th>
@@ -47,13 +83,12 @@
             {% else %}
             <td>
                 <form>
-                    <button type="submit">
+                    <button type="button" disabled>
                       UNAVAILABLE
                     </button>
                   </form>
             </td>
             {% endif %}
-
     </tr>
     {% endfor %}
 </table>

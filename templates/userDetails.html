@@ -6,19 +6,20 @@
 </head>
 <body>
 <h2>User-{{user[0][0]}}: {{user[0][1]}}</h2>
+<h5>Spots Already Used: {{ user[0][3] }}</h5>
+<h5>Spots In Use: {{ user[0][4] }}</h5>
+
 <table border="1">
     <tr>
         <th>Spot ID</th>
-        <th>Spots Already Used</th>
-        <th>Spots In Use</th>
         <th>Total Parked Duration</th>
+        <th>Status</th>
     </tr>
 {% for use in user %}
     <tr>
             <td>{{ use[2] }}</td>
-            <td>{{ use[3] }}</td>
-            <td>{{ use[4] }}</td>
             <td>{{ use[5] }}</td>
+            <td>{{ use[6] }}</td>
     </tr>
     {% endfor %}
 
