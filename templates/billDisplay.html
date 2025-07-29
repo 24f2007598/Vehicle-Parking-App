@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parking Bill</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Parking Bill</h2>
+    <table class="table table-bordered">
+        <tr>
+            <th>Booking ID</th>
+            <td>{{ spot[0] }}</td>
+        </tr>
+
+        <tr>
+            <th>Vehicle Number</th>
+            <td>{{ spot[4] }}</td>
+        </tr>
+        <tr>
+            <th>Start Time</th>
+            <td>{{ spot[-5] }}</td>
+        </tr>
+        <tr>
+            <th>End Time</th>
+            <td>{{ spot[-4] }}</td>
+        </tr>
+        <tr>
+            <th>Hours Parked</th>
+            <td>{{ spot[-3] }}</td>
+        </tr>
+        <tr>
+            <th>Price per Hour</th>
+            <td>₹{{ spot[-1] }}</td>
+        </tr>
+        <tr class="table-success">
+            <th>Total Bill</th>
+            <td><strong>₹{{ spot[-2] }}</strong></td>
+        </tr>
+    </table>
+    <div class="text-center">
+        <a href="{{ url_for('dashboard', userid=spot[1]) }}" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

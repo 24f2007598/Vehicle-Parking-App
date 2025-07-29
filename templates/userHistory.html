@@ -1,0 +1,28 @@
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Booking ID</th>
+            <th>Spot</th>
+            <th>Vehicle</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Duration (hrs)</th>
+            <th>Cost (₹)</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+            <td>{{ row[-4] }}</td>
+            <td>{{ row[-3] }}</td>
+            <td>{{ row[9] }}</td>
+            <td>{{ row[-1] }}</td>
+            <td>{{ row[8] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

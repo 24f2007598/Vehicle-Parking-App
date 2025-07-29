@@ -5,35 +5,40 @@ from wtforms import TextAreaField, PasswordField, IntegerField, RadioField, Subm
 from wtforms.validators import ValidationError, DataRequired, Length, NumberRange
 import re
 
+
 class ChooseLot(Form):
-    vh_num = TextAreaField(label = "Vehicle Number", validators = [DataRequired(), Length(min=10, max=10, message=None)])
+    vh_num = TextAreaField(label="Vehicle Number", validators=[DataRequired(), Length(min=10, max=10, message=None)])
+
 
 class Lot(Form):
-    address = TextAreaField(label = "Address", validators = [DataRequired()])
-    pincode = IntegerField(label = "Pincode", validators=[DataRequired(), NumberRange(min=0, max=999999)])
-    price_per_hr = FloatField(label = "Price (per hour)", validators=[DataRequired()])
-    max_spots = IntegerField(label = "Maximum Number of Parking Spots", validators=[DataRequired(), NumberRange(min=1)])
+    address = TextAreaField(label="Address", validators=[DataRequired()])
+    pincode = IntegerField(label="Pincode", validators=[DataRequired(), NumberRange(min=0, max=999999)])
+    price_per_hr = FloatField(label="Price (per hour)", validators=[DataRequired()])
+    max_spots = IntegerField(label="Maximum Number of Parking Spots", validators=[DataRequired(), NumberRange(min=1)])
 
     submit = SubmitField("Add Lot")
 
+
 class EditLot(Form):
-    address = TextAreaField(label = "Address",)
-    pincode = IntegerField(label = "Pincode", validators=[NumberRange(min=0, max=999999)])
-    price_per_hr = FloatField(label = "Price (per hour)",)
-    max_spots = IntegerField(label = "Maximum Number of Parking Spots", validators=[NumberRange(min=1)])
+    address = TextAreaField(label="Address", )
+    pincode = IntegerField(label="Pincode", validators=[NumberRange(min=0, max=999999)])
+    price_per_hr = FloatField(label="Price (per hour)", )
+    max_spots = IntegerField(label="Maximum Number of Parking Spots", validators=[NumberRange(min=1)])
 
 
 class logIn(Form):
-    email = EmailField(label = "Email", validators = [DataRequired()])
-    passwd = PasswordField(label = "Password", validators = [DataRequired()])
+    email = EmailField(label="Email", validators=[DataRequired()])
+    passwd = PasswordField(label="Password", validators=[DataRequired()])
     submit = SubmitField("Login")
 
+
 class signUp(Form):
-    Fname = TextAreaField(label = "Username", validators = [DataRequired()])
-    email = EmailField(label = "Email", validators = [DataRequired()])
-    passwd = PasswordField(label = "Password", validators = [DataRequired()])
-    gender = RadioField(label = "Gender", choices = [(c, c) for c in ['M', 'F']])
-    age = IntegerField(label = "Age", validators = [DataRequired(), NumberRange(min=18, message="18 or above restriction in place")])
+    Fname = TextAreaField(label="Username", validators=[DataRequired()])
+    email = EmailField(label="Email", validators=[DataRequired()])
+    passwd = PasswordField(label="Password", validators=[DataRequired()])
+    gender = RadioField(label="Gender", choices=[(c, c) for c in ['M', 'F']])
+    age = IntegerField(label="Age",
+                       validators=[DataRequired(), NumberRange(min=18, message="18 or above restriction in place")])
 
     submit = SubmitField("Signup")
 
@@ -54,7 +59,7 @@ def init_db():
         #         ''', ('Darth', 'Vader', 'anakin@gmail.com', "padma", "M", 20))
         # cur.execute('''DROP TABLE User;''')
 
-#USER
+        # USER
         cur.execute('''
             CREATE TABLE IF NOT EXISTS User (
                 user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,7 +77,7 @@ def init_db():
         # cur.execute('''DROP TABLE Vehicles;''')
         # cur.execute('''DROP TABLE Bookings;''')
 
-#VEHICLES
+        # VEHICLES
         cur.execute('''
             CREATE TABLE IF NOT EXISTS Vehicles (
               vehicle_id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,7 +89,7 @@ def init_db():
         ''')
         print("what")
 
-#PARKING LOT
+        # PARKING LOT
         cur.execute('''
             CREATE TABLE IF NOT EXISTS ParkingLots (
               lot_id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +106,7 @@ def init_db():
         # sql = f"DELETE from ParkingLots"
         # cur.execute(sql)
 
-        #PARKING SPOT
+        # PARKING SPOT
         cur.execute('''
             CREATE TABLE IF NOT EXISTS ParkingSpots (
               spot_id  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -113,7 +118,7 @@ def init_db():
             );
         ''')
 
-# BOOKINGS
+        # BOOKINGS
         cur.execute('''
             CREATE TABLE IF NOT EXISTS Bookings (
               booking_id  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,14 +128,18 @@ def init_db():
               end_time    DATETIME,
               status      TEXT    NOT NULL DEFAULT 'Booked'
                            CHECK(status IN ('Booked','Completed','Cancelled')),
+              duration_hours Float Default NULL,
+              total_amount Float Default NULL,
               FOREIGN KEY(spot_id)    REFERENCES ParkingSpots(spot_id)
                 ON DELETE CASCADE,
               FOREIGN KEY(vehicle_id) REFERENCES Vehicles(vehicle_id)
                 ON DELETE CASCADE
             );
                 ''')
-
+        # cur.execute('''ALTER TABLE Bookings ADD COLUMN duration_hours Float Default NULL;''')
+        # cur.execute('''ALTER TABLE Bookings ADD COLUMN total_amount Float Default NULL;''')
         con.commit()
+
 
 # LOTS-----------------------------------------------------------------------------
 @app.route('/newlot', methods=['POST', 'GET'])
@@ -151,6 +160,7 @@ def create_lot():
             return render_template('newLot.html', form=form)
     return render_template('newLot.html', form=form)
 
+
 def add_lot(data):
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
@@ -167,6 +177,7 @@ def add_lot(data):
             cur.execute('''INSERT INTO ParkingSpots (lot_id) VALUES (?)''', (lotid,))
         con.commit()
 
+
 # @app.route('/lots')
 # def lot_success():
 #     lots = get_lots()
@@ -178,13 +189,15 @@ def get_lots():
         cur.execute('SELECT * FROM ParkingLots')
         return cur.fetchall()
 
-def get_lot(lotid) :
+
+def get_lot(lotid):
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
         cur.execute('SELECT * FROM ParkingLots WHERE lot_id = ?', (lotid,))
         return cur.fetchone()
 
-#LSKRMGNV
+
+# LSKRMGNV
 def status_of_lot():
     lots = get_lots()
     with sqlite3.connect(DB) as con:
@@ -195,15 +208,20 @@ def status_of_lot():
             cur.execute('SELECT status FROM ParkingSpots WHERE lot_id = ?', (lot[0],))
             stats = cur.fetchall()
             for s in stats:
-                if s[0] == 'Available': L.append('A')
-                elif s[0] == 'Occupied': L.append('O')
-                elif s[0] == 'OutOfService': L.append('NA')
+                if s[0] == 'Available':
+                    L.append('A')
+                elif s[0] == 'Occupied':
+                    L.append('O')
+                elif s[0] == 'OutOfService':
+                    L.append('NA')
             status.append(L)
     return status
 
+
 status = status_of_lot()
 
-@app.route('/lot/edit/<int:lotid>', methods=['GET','POST'])
+
+@app.route('/lot/edit/<int:lotid>', methods=['GET', 'POST'])
 def edit_lot(lotid):
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
@@ -265,6 +283,7 @@ def get_spots():
         cur.execute('SELECT * FROM ParkingSpots')
         return cur.fetchall()
 
+
 def get_spot(spotid):
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
@@ -295,10 +314,11 @@ def spot_details(spotid):
 # ADMIN -----------------------------------------------------------------------------
 @app.route('/admin/home')
 def admin_home():
-    boxes = 10   # total boxes
+    boxes = 10  # total boxes
     spots = 9
     return render_template('adminHome.html', boxes=boxes,
                            spots=spots, L=status)
+
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
@@ -308,7 +328,9 @@ def admin_dashboard():
     spots = get_spots()
     vhs = get_vehicles()
     bks = get_bookings()
-    return render_template('adminDashboard.html', name="Admin (Darth Vader)", users=users, lots=lots, spots=spots, vhs=vhs, bks=bks)
+    return render_template('adminDashboard.html', name="Admin (Darth Vader)", users=users, lots=lots, spots=spots,
+                           vhs=vhs, bks=bks)
+
 
 @app.route('/admin/search')
 def admin_search():
@@ -324,7 +346,13 @@ def add_user(data):
             INSERT INTO User (fname, email, passwd, gender, age)
             VALUES (?, ?, ?, ?, ?)
         ''', (data['Fname'], data['email'], data['passwd'], data['gender'], data['age']))
+
+        cur.execute('''
+                    Select user_id from User where email = ?''', (data['email'],))
+        userid = cur.fetchone()[0]
         con.commit()
+    return userid
+
 
 # Retrieve Users from DB
 def user_check():
@@ -333,15 +361,18 @@ def user_check():
         cur.execute('SELECT * FROM User')
         return cur.fetchall()
 
+
 @app.route('/what')
 def defaultHome():
     return render_template('home.html')
+
 
 @app.route('/')
 def home():
     return render_template('home.html')
 
-@app.route('/test', methods=['GET','POST'])
+
+@app.route('/test', methods=['GET', 'POST'])
 def test():
     # initialize only once
     if 'boxes_data' not in session:
@@ -364,6 +395,7 @@ def test():
     return render_template('test.html',
                            boxes_data=boxes_data,
                            selected=selected)
+
 
 @app.route('/users/<int:userid>')
 def user_details(userid):
@@ -410,7 +442,6 @@ def user_details(userid):
         ''', (userid,)
         )
 
-
     user = cur.fetchall()
     return render_template('userDetails.html', user=user)
 
@@ -432,9 +463,10 @@ def user_history(userid):
          - julianday(b.start_time))
         * 24 * 60 * 60
       AS INTEGER) AS duration_seconds,
-      b.status
+      b.status,
+      round(b.duration_hours, 2)
     FROM User AS u
-    
+
     -- first compute per-user counts:
     LEFT JOIN (
       SELECT
@@ -448,16 +480,16 @@ def user_history(userid):
       GROUP BY v.user_id
     ) AS us
       ON u.user_id = us.user_id
-    
+
     -- then bring in each vehicle-booking to show spot_id + duration      
     LEFT JOIN Vehicles AS v
       ON u.user_id = v.user_id
     LEFT JOIN Bookings AS b
       ON v.vehicle_id = b.vehicle_id
-    
+
       where u.user_id = ?
     ;
-    
+
         ''', (userid,)
         )
         return cur.fetchall()
@@ -467,32 +499,32 @@ def get_users():
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
         cur.execute(
-        '''SELECT 
-    u.user_id,
-    u.fname,
-    u.email,
-    u.age,
-    u.gender,
-    COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END), 0) AS spots_used,
-    COALESCE(SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END), 0) AS spots_in_use
-FROM User AS u
-LEFT JOIN Vehicles AS v
-    ON u.user_id = v.user_id
-LEFT JOIN Bookings AS b
-    ON v.vehicle_id = b.vehicle_id
-GROUP BY
-    u.user_id,
-    u.fname,
-    u.email,
-    u.age,
-    u.gender;
-
-    '''
+            '''SELECT 
+        u.user_id,
+        u.fname,
+        u.email,
+        u.age,
+        u.gender,
+        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END), 0) AS spots_used,
+        COALESCE(SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END), 0) AS spots_in_use
+    FROM User AS u
+    LEFT JOIN Vehicles AS v
+        ON u.user_id = v.user_id
+    LEFT JOIN Bookings AS b
+        ON v.vehicle_id = b.vehicle_id
+    GROUP BY
+        u.user_id,
+        u.fname,
+        u.email,
+        u.age,
+        u.gender;
+    
+        '''
         )
         return cur.fetchall()
 
 
-@app.route('/dashboard//<int:userid>')
+@app.route('/dashboard/<int:userid>')
 def dashboard(userid):
     print(userid)
     det = user_history(userid)
@@ -500,9 +532,11 @@ def dashboard(userid):
     print(det)
     return render_template('dashboard.html', lots=lots, details=det, userid=userid)
 
+
 @app.route('/summary')
 def user_summary():
     return render_template('userSummary.html')
+
 
 # SIGNIN LOGIN LOGOUT -------------------------------------------------------------------
 @app.route('/signup', methods=['POST', 'GET'])
@@ -519,24 +553,26 @@ def sign_up():
             }
             users = get_users()
             for user in users:
-                if user[3] == user_data['email']:
+                if user[2] == user_data['email']:
                     flash("User already Exists. Login, please.")
                     return redirect(url_for('login'))
-            add_user(user_data)
+            userid = add_user(user_data)
             session['Fname'] = user_data['Fname']
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('dashboard', userid=userid))
         else:
             flash("All required fields must be filled correctly.")
             return render_template('signup.html', form=form)
     return render_template('signup.html', form=form)
+
 
 @app.route('/welcome')
 def signupSuccess():
     Fname = session.get('Fname', 'Guest')
     return render_template('signupSuccessful.html', Fname=Fname)
 
-#login
-@app.route('/login', methods = ['POST', 'GET'])
+
+# login
+@app.route('/login', methods=['POST', 'GET'])
 def login():
     form = logIn(request.form)
     if request.method == 'POST':
@@ -548,7 +584,6 @@ def login():
                 if pwd == 'padma':
                     return redirect(url_for('admin_home'))
                 return render_template('login.html', form=form)
-
             for user in users:
                 if user[4] == email:
                     if user[5] == pwd:
@@ -556,7 +591,7 @@ def login():
                         session['user_id'] = user[0]
                         # session.permanent = True
                         return redirect(url_for('dashboard', userid=session.get('user_id')))
-                # flash("Unregistered email. Please, signup.")
+                    # flash("Unregistered email. Please, signup.")
                     else:
                         flash("Incorrect password")
                         return redirect(url_for('login'))
@@ -567,25 +602,26 @@ def login():
             return render_template('login.html', form=form)
     return render_template('login.html', form=form)
 
-#logout
+
+# logout
 @app.route('/logout/<name>')
 def log_out(name):
     return f'bye, {name}'
 
-#BOOKING----------------------------------------------------------------------------------------------------------
-@app.route('/lot/choose/<int:lotid>', methods=['GET','POST'])
+
+# BOOKING----------------------------------------------------------------------------------------------------------
+@app.route('/lot/choose/<int:lotid>', methods=['GET', 'POST'])
 def book_lot(lotid):
     print("line 1")
     states = [
-    "AP", "AR", "AS", "BR", "CG", "CH", "DD", "DL",
-    "GA", "GJ", "HP", "HR", "JH", "JK", "KA", "KL",
-    "LA", "LD", "MH", "ML", "MN", "MP", "MZ", "NL",
-    "OD", "PB", "PY", "RJ", "SK", "TG", "TN", "TR",
-    "UK", "UP", "WB"
-]
+        "AP", "AR", "AS", "BR", "CG", "CH", "DD", "DL",
+        "GA", "GJ", "HP", "HR", "JH", "JK", "KA", "KL",
+        "LA", "LD", "MH", "ML", "MN", "MP", "MZ", "NL",
+        "OD", "PB", "PY", "RJ", "SK", "TG", "TN", "TR",
+        "UK", "UP", "WB"
+    ]
     lot = get_lot(lotid)
     print("form request")
-
 
     if request.method == 'POST':
         vehicle = request.form.get('vehicle_number', '').strip()
@@ -606,7 +642,7 @@ def book_lot(lotid):
                         break
                 cur.execute('Select free_spots from ParkingLots where lot_id = ?', (lotid,))
                 data = cur.fetchone()
-                fr = data[0]-1
+                fr = data[0] - 1
                 cur.execute(
                     'UPDATE ParkingSpots SET status = ? WHERE spot_id = ?',
                     ('Occupied', spotid)
@@ -640,10 +676,13 @@ def book_lot(lotid):
         'userLotDetails.html',
         lot=lot, userid=session.get('user_id')
     )
-@app.route('/lot/book/<int:lotid>', methods=['GET','POST'])
+
+
+@app.route('/lot/book/<int:lotid>', methods=['GET', 'POST'])
 def confirm_booking(lotid):
     lot = get_lot(lotid)
     return render_template('bookSpots.html', lot=lot)
+
 
 def get_vehicles():
     with sqlite3.connect(DB) as con:
@@ -651,37 +690,147 @@ def get_vehicles():
         cur.execute('SELECT * FROM Vehicles')
         return cur.fetchall()
 
+
 def get_bookings():
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
         cur.execute('SELECT * FROM Bookings')
         return cur.fetchall()
 
-#RESERVATION-----------------------------------------------------------------------------------------------------
-@app.route('/user/spot/<int:spotid>', methods=['GET','POST'])
+
+# RESERVATION-----------------------------------------------------------------------------------------------------
+@app.route('/user/spot/<int:spotid>', methods=['GET', 'POST'])
 def reservation_details(spotid):
     det = user_history(session.get('user_id'))
     for d in det:
-        if d[2] == spotid:
+        if d[3] == spotid:
             spot = d
             break
     if request.method == 'POST':
+        print("WASSSUP")
         action = request.form.get('action')
-        if action == "compelete":
+        if action == "complete":
             with sqlite3.connect(DB) as con:
                 cur = con.cursor()
                 cur.execute('''
                     UPDATE Bookings
                     SET end_time       = CURRENT_TIMESTAMP,
-                    duration_hours = (julianday(CURRENT_TIMESTAMP) - julianday(start_time)) * 24
+                    duration_hours = (julianday(CURRENT_TIMESTAMP) - julianday(start_time)) * 24,
+                    status = 'Completed'
                     WHERE booking_id     = ?
                 ''', (spot[0],))
+
+                cur.execute('''
+                    UPDATE ParkingSpots
+                    SET status = 'Available'
+                    WHERE spot_id = ?
+                ''', (spot[3],))
+
+                cur.execute('''
+                SELECT ps.lot_id
+                FROM ParkingLots ps join ParkingSpots s
+                WHERE ps.lot_id = s.lot_id and s.spot_id = ?
+                ''', (spot[3],))
+                lot = cur.fetchone()
+                lotid = lot[0]
+
+                cur.execute('''
+                                    UPDATE ParkingLots
+                                    SET free_spots = free_spots+1   
+                                    WHERE lot_id = ?
+                                ''', (lotid,))
+
                 con.commit()
+            return redirect(url_for('bill_details', spotid=spot[3]))
+
         elif action == "back":
             return redirect(url_for('dashboard', userid=session.get('user_id')))
+
         else:
             return render_template('reservationDetails.html', spotid=spotid, spot=spot)
     return render_template('reservationDetails.html', spotid=spotid, spot=spot)
+
+
+@app.route('/user/bill/<int:spotid>', methods=['GET', 'POST'])
+def bill_details(spotid):
+    det = user_history(session.get('user_id'))
+    for d in det:
+        if d[3] == spotid:
+            spot = d
+            break
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute('''
+        SELECT ps.price_per_hour
+        FROM ParkingLots ps join ParkingSpots s
+        WHERE ps.lot_id = s.lot_id and s.spot_id = ?
+        ''', (spot[3],))
+        price_per_hour = cur.fetchone()[0]
+
+        cur.execute('''
+        SELECT duration_hours
+        FROM Bookings
+        WHERE booking_id = ?
+        ''', (spot[0],))
+
+        hours = cur.fetchone()[0]
+        total_amount = price_per_hour * hours
+
+        cur.execute('''
+                            UPDATE Bookings
+                            SET total_amount = ?
+                            WHERE spot_id= ?
+                        ''', (total_amount, spot[3]))
+
+        cur.execute('''
+                SELECT start_time, end_time, duration_hours
+                FROM Bookings
+                WHERE booking_id = ?
+                ''', (spot[0],))
+        data = cur.fetchone()
+        spot = list(spot)
+        spot.extend(data)
+        spot.append(round(total_amount, 2))
+        spot.append(price_per_hour)
+        con.commit()
+    return render_template('billDisplay.html', spot=spot)
+
+
+@app.route('/user/history/<int:spotid>', methods=['GET', 'POST'])
+def booking_history_user(spotid):
+    det = user_history(session.get('user_id'))
+    for d in det:
+        if d[3] == spotid:
+            spot = d
+            break
+
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute('''
+        SELECT ps.price_per_hour, ps.address, ps.pin_code
+        FROM ParkingLots ps join ParkingSpots s
+        WHERE ps.lot_id = s.lot_id and s.spot_id = ?
+        ''', (spot[3],))
+        price_per_hour, address, pincode = cur.fetchone()
+
+        cur.execute('''
+                SELECT start_time, end_time, total_amount
+                FROM Bookings
+                WHERE booking_id = ?
+                ''', (spot[0],))
+        data = cur.fetchone()
+        spot = list(spot)
+        spot.extend((price_per_hour, address, pincode))
+        spot.extend(data)
+        con.commit()
+        print("\n\n")
+        j = 0
+        for i in spot:
+            print(j, i)
+            j += 1
+
+    return render_template('reservationHistory.html', row=spot)
+
 
 init_db()
 print()

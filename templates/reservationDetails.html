@@ -12,7 +12,7 @@
         <th>Spot ID</th>
         <th>Vehicle Number</th>
         <th>Total Parked Duration</th>
-        <th>Status</th>
+        <th>Time</th>
     </tr>
     <tr>
             <td>{{ spot[3] }}</td>
@@ -20,7 +20,11 @@
             <td>{{ spot[6] }}</td>
             <td>{{ spot[7] }}</td>
 </table>
+    <form action="{{ url_for('reservation_details', spotid=spot[3]) }}" method = 'post'>
     <button type="submit" name="action" value="complete">RELEASE SPOT</button>
     <button type="submit" name="action" value="back">BACK</button>
+
+</form>
+
 </body>
 </html>

@@ -31,7 +31,7 @@
             <td>{{ d[8] }}</td>
         {% if d[8] == 'Booked' %}
             <td>
-                <form method="post" action="{{ url_for('reservation_details', spotid=d[2]) }}">
+                <form method="post" action="{{ url_for('reservation_details', spotid=d[3]) }}">
                     <button type="submit">
                       IN PROGRESS
                     </button>
@@ -39,11 +39,7 @@
             </td>
         {% else %}
             <td>
-                <form>
-                    <button type="button" disabled>
-                      COMPLETED
-                    </button>
-                  </form>
+                <button type="button" disabled>COMPLETED</button>
             </td>
             {% endif %}
     </tr>
