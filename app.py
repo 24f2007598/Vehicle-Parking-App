@@ -21,8 +21,6 @@ class Lot(Form):
 
 
 class EditLot(Form):
-    address = TextAreaField(label="Address", )
-    pincode = IntegerField(label="Pincode", validators=[NumberRange(min=0, max=999999)])
     price_per_hr = FloatField(label="Price (per hour)", )
     max_spots = IntegerField(label="Maximum Number of Parking Spots", validators=[NumberRange(min=1)])
 
@@ -88,7 +86,6 @@ def init_db():
                 ON DELETE CASCADE
             );
         ''')
-        print("what")
 
         # PARKING LOT
         cur.execute('''
@@ -178,12 +175,6 @@ def add_lot(data):
             cur.execute('''INSERT INTO ParkingSpots (lot_id) VALUES (?)''', (lotid,))
         con.commit()
 
-
-# @app.route('/lots')
-# def lot_success():
-#     lots = get_lots()
-#     return render_template('lotDetails.html', lots=lots)
-
 def get_lots():
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
@@ -198,7 +189,6 @@ def get_lot(lotid):
         return cur.fetchone()
 
 
-# LSKRMGNV
 def status_of_lot():
     lots = get_lots()
     with sqlite3.connect(DB) as con:
@@ -228,20 +218,28 @@ def edit_lot(lotid):
         cur = con.cursor()
         lot = get_lot(lotid)
         form = EditLot(request.form)
+
+        cur.execute("SELECT COUNT(*) FROM ParkingSpots WHERE lot_id = ? AND status = 'Occupied'", (lotid,))
+        occupied_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM ParkingSpots WHERE lot_id = ?", (lotid,))
+        current_total_spots = cur.fetchone()[0]
+
         if request.method == 'POST':
             action = request.form.get('action')
             if action == "update":
                 updates = {}
-                if form.address.data:
-                    updates['address'] = form.address.data
-                if form.pincode.data:
-                    updates['pin_code'] = form.pincode.data
-                    # IntegerFields blank → data is None, so we check is not None
+                new_max = form.max_spots.data
+
+                if new_max is not None and new_max < occupied_count:
+                    flash(f"Cannot reduce max spots below {occupied_count} (currently occupied).", 'danger')
+                    return redirect(url_for('edit_lot', lotid=lotid))
+
                 if form.price_per_hr.data is not None:
                     updates['price_per_hour'] = form.price_per_hr.data
-                if form.max_spots.data is not None:
-                    updates['max_spots'] = form.max_spots.data
-                print(updates)
+
+                if new_max is not None:
+                    updates['max_spots'] = new_max
 
                 if updates:
                     cols = ', '.join(f"{col}=?" for col in updates)
@@ -249,31 +247,31 @@ def edit_lot(lotid):
                     sql = f"UPDATE ParkingLots SET {cols} WHERE lot_id = ?"
                     cur.execute(sql, params)
 
-                    if form.max_spots.data is not None:
-                        sql = f"DELETE from ParkingSpots WHERE lot_id = ?"
-                        cur.execute(sql, (lotid,))
-                        for i in range(0, updates['max_spots']):
-                            cur.execute('''INSERT INTO ParkingSpots (lot_id) VALUES (?)''', (lotid,))
+                    if new_max is not None and new_max > current_total_spots:
+                        new_spots = new_max - current_total_spots
+                        for _ in range(new_spots):
+                            cur.execute('INSERT INTO ParkingSpots (lot_id) VALUES (?)', (lotid,))
+
                     con.commit()
                     flash(f"Updated fields: {', '.join(updates.keys())}", 'success')
                 else:
                     flash("No fields were filled in — nothing to update.", 'warning')
+
             elif action == "delete":
-                cur.execute("select * from ParkingSpots where lot_id = ? and status = ?", (lotid, 'Occupied'))
+                cur.execute("SELECT * FROM ParkingSpots WHERE lot_id = ? AND status = 'Occupied'", (lotid,))
                 data = cur.fetchall()
-                print(data)
                 if not data:
-                    sql = f"DELETE from ParkingLots WHERE lot_id = ?"
-                    cur.execute(sql, (lotid,))
-                    sql = f"DELETE from ParkingSpots WHERE lot_id = ?"
-                    cur.execute(sql, (lotid,))
+                    cur.execute("DELETE FROM ParkingLots WHERE lot_id = ?", (lotid,))
+                    cur.execute("DELETE FROM ParkingSpots WHERE lot_id = ?", (lotid,))
                     con.commit()
                     return redirect(url_for('admin_dashboard'))
                 else:
-                    flash('Occupied Spots exist.')
+                    flash('Cannot delete lot: some spots are still occupied.', 'warning')
             else:
                 return redirect(url_for('admin_dashboard'))
+
             return redirect(url_for('edit_lot', lotid=lotid))
+
         return render_template('lotDetails.html', lot=lot, form=form)
 
 
@@ -338,7 +336,7 @@ def admin_search():
 @app.route('/user/parking/history/', methods=['GET', 'POST'])
 def parking_history_all():
     rows, columns = all_parking()
-    return render_template('parkingViewAdmin.html', rows=rows, columns=columns)
+    return render_template('parkingViewAdmin.html', rows=rows, columns=columns, userid=session.get('user_id'))
 
 # USERS -----------------------------------------------------------------------------
 # Insert User Data into DB
@@ -499,9 +497,9 @@ def book_lot(lotid):
                     if row[2] == 'Available':
                         spotid = row[0]
                         break
-                cur.execute('Select free_spots from ParkingLots where lot_id = ?', (lotid,))
-                data = cur.fetchone()
-                fr = data[0] - 1
+                cur.execute('Select free_spots, price_per_hour from ParkingLots where lot_id = ?', (lotid,))
+                data, base_price = cur.fetchone()
+                fr = data - 1
                 cur.execute(
                     'UPDATE ParkingSpots SET status = ? WHERE spot_id = ?',
                     ('Occupied', spotid)
@@ -527,9 +525,9 @@ def book_lot(lotid):
                     vhid = cur.lastrowid  # Us
 
                 cur.execute('''
-                    INSERT INTO Bookings (spot_id, vehicle_id)
-                    VALUES (?, ?)
-                ''', (spotid, vhid))
+                    INSERT INTO Bookings (spot_id, vehicle_id, total_amount)
+                    VALUES (?, ?, ?)
+                ''', (spotid, vhid, base_price))
                 con.commit()
                 return render_template(
                     'bookSpots.html', lot=lot, userid=session.get('user_id')

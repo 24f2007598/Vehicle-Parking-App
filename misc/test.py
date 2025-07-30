@@ -3,7 +3,7 @@ from flask import Flask, request, render_template, flash, redirect, session, url
 # from flask_login import LoginManager, UserMixin
 import sqlite3
 
-from signing_up import signUp
+from models.signing_up import signUp
 app = Flask(__name__)
 app.secret_key = "private_key"
 

@@ -11,15 +11,20 @@
             background-color: #f8f9fa;
         }
         nav.nav {
-            margin-bottom: 20px;
+            background-color: #343a40;
+            padding: 10px 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
         }
         nav.nav a {
-            margin-right: 15px;
+            color: white;
+            margin-right: 20px;
             text-decoration: none;
-            color: #0d6efd;
             font-weight: bold;
         }
-        h1, h4 {
+        nav.nav a:hover {
+            text-decoration: underline;
+        }        h1, h4 {
             margin-top: 40px;
             margin-bottom: 20px;
         }
@@ -47,7 +52,9 @@
     <h1>Dashboard</h1>
     <h2>Welcome, {{ name }}</h2>
 
-    <a href="{{ url_for('parking_history_all') }}" class="btn btn-primary">View Parking History</a>
+    <div class="text-center mb-4">
+        <a href="{{ url_for('parking_history_all') }}" class="btn btn-primary">View Parking History</a>
+    </div>
 
     <!-- User Details -->
     <div class="section">

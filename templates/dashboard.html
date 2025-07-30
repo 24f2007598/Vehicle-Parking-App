@@ -48,7 +48,14 @@
 </nav>
 
 <div class="container">
-        <h1>{{ username }}</h1>
+        <h1>Dashboard</h1>
+        <h2>Welcome, user!</h2>
+
+
+    <div class="text-center mb-4">
+        <a href="{{ url_for('booking_history_user', userid=userid) }}" class="btn btn-primary">View Completed Booking</a>
+        <a href="{{ url_for('booking_history_user_all', userid=userid) }}" class="btn btn-primary">View Parking History</a>
+    </div>
 
     <!-- Bookings In Progress -->
     <div class="section">
@@ -99,11 +106,7 @@
         {% endif %}
     </div>
 
-    <!-- Booking History Links -->
-    <div class="text-center mb-4">
-        <a href="{{ url_for('booking_history_user', userid=userid) }}" class="btn btn-primary">View Completed Booking</a>
-        <a href="{{ url_for('booking_history_user_all', userid=userid) }}" class="btn btn-primary">View Parking History</a>
-    </div>
+
 
     <!-- Lots Section -->
     <div class="section">
