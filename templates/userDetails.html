@@ -5,21 +5,35 @@
     <title>Lots</title>
 </head>
 <body>
-<h2>User-{{user[0][0]}}: {{user[0][1]}}</h2>
-<h5>Spots Already Used: {{ user[0][3] }}</h5>
-<h5>Spots In Use: {{ user[0][4] }}</h5>
+<h2>User-{{user[0][2]}}: {{user[0][4]}}</h2>
+<h5>Spots Already Used: {{ user[0][-3] }}</h5>
+<h5>Spots In Use: {{ user[0][-2] }}</h5>
 
 <table border="1">
     <tr>
-        <th>Spot ID</th>
-        <th>Total Parked Duration</th>
-        <th>Status</th>
+                <th>Booking ID</th>
+                <th>Vehicle Number</th>
+                <th>Spot ID</th>
+                <th>Address</th>
+                <th>STATUS</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Price (Per Hour)</th>a
+                <th>Duration (in Hours)</th>
+                <th>Price (in Rupees)</th>
     </tr>
-{% for use in user %}
+{% for row in user %}
     <tr>
-            <td>{{ use[2] }}</td>
-            <td>{{ use[5] }}</td>
-            <td>{{ use[6] }}</td>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[5] }} - {{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
+                <td>{{ row[9] }}</td>
+                <td>{{ row[10] }}</td>
+                <td>{{ row[11] }}</td>
+                <td>{{ row[12] }}</td>
     </tr>
     {% endfor %}
 

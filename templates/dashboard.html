@@ -10,42 +10,75 @@
     <a href = "{{url_for('user_summary')}}">Summary</a>
     <a href = "{{url_for('home')}}">Logout</a>
 </nav>
-    <h1>Welcome, {{ details[0][2] }}</h1>
+{% if details %}
+<h1>Welcome, {{ details[0][2] }}</h1>
 <h5>Spots Already Used: {{ details[0][5] }}</h5>
 <h5>Spots In Use: {{ details[0][6] }}</h5>
-    <h3>Parking History</h3>
+{% else %}
+<h1>Welcome, {{ session.Fname or 'User' }}</h1>
+<h5>Spots Already Used: 0</h5>
+<h5>Spots In Use: 0</h5>
+{% endif %}
+    <h3>Bookings In Progress</h3>
 
 
 <table border="1">
-    <tr>
-        <th>Spot ID</th>
-        <th>Vehicle Number</th>
-        <th>Total Parked Duration</th>
-        <th>Status</th>
-    </tr>
-    {% for d in details %}
-    <tr>
-            <td>{{ d[3] }}</td>
-            <td>{{ d[4] }}</td>
-            <td>{{ d[7] }}</td>
-            <td>{{ d[8] }}</td>
-        {% if d[8] == 'Booked' %}
-            <td>
-                <form method="post" action="{{ url_for('reservation_details', spotid=d[3]) }}">
+    {% if details %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Vehicle Number</th>
+                    <th>User ID</th>
+                    <th>Spot ID</th>
+                    <th>Address</th>
+                    <th>Pin Code</th>
+                    <th>Status</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Price/Hour (₹)</th>
+                    <th>Duration (sec)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in details %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                    <td>{{ row[5] }}</td>
+                    <td>{{ row[6] }}</td>
+                    <td>{{ row[7] }}</td>
+                    <td>{{ row[8] or 'Ongoing' }}</td>
+                    <td>{{ row[9] }}</td>
+                    <td>
+                <form method="post" action="{{ url_for('reservation_details', spotid=row[3]) }}">
                     <button type="submit">
                       IN PROGRESS
                     </button>
                 </form>
             </td>
+                    <td>{{ row[10] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% else %}
-            <td>
-                <button type="button" disabled>COMPLETED</button>
-            </td>
-            {% endif %}
-    </tr>
-    {% endfor %}
+        <div class="alert alert-info">No booking records found.</div>
+        {% endif %}
+
 
 </table>
+    <div class="text-center">
+        <a href="{{ url_for('booking_history_user', userid=userid) }}" class="btn btn-primary"> View Completed Booking</a>
+    </div>
+    <div class="text-center">
+        <a href="{{ url_for('booking_history_user_all', userid=userid) }}" class="btn btn-primary"> View Parking History</a>
+    </div>
+
+
 
 <!--lots-->
     <h3>Lots You Can Book</h3>

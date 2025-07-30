@@ -15,32 +15,37 @@
         </tr>
 
         <tr>
+            <th>Adress</th>
+            <td>{{ spot[5] }} -- {{ spot[6] }}</td>
+        </tr>
+
+        <tr>
             <th>Vehicle Number</th>
-            <td>{{ spot[4] }}</td>
+            <td>{{ spot[1] }}</td>
         </tr>
         <tr>
             <th>Start Time</th>
-            <td>{{ spot[-5] }}</td>
+            <td>{{ spot[8] }}</td>
         </tr>
         <tr>
             <th>End Time</th>
-            <td>{{ spot[-4] }}</td>
+            <td>{{ spot[9] }}</td>
         </tr>
         <tr>
             <th>Hours Parked</th>
-            <td>{{ spot[-3] }}</td>
+            <td>{{ spot[11] }}</td>
         </tr>
         <tr>
             <th>Price per Hour</th>
-            <td>₹{{ spot[-1] }}</td>
+            <td>₹{{ spot[10] }}</td>
         </tr>
         <tr class="table-success">
             <th>Total Bill</th>
-            <td><strong>₹{{ spot[-2] }}</strong></td>
+            <td><strong>₹{{ spot[12] }}</strong></td>
         </tr>
     </table>
     <div class="text-center">
-        <a href="{{ url_for('dashboard', userid=spot[1]) }}" class="btn btn-primary">Back to Dashboard</a>
+        <a href="{{ url_for('dashboard', userid=spot[2]) }}" class="btn btn-primary">Back to Dashboard</a>
     </div>
 </div>
 </body>

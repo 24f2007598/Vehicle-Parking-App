@@ -399,137 +399,20 @@ def test():
 
 @app.route('/users/<int:userid>')
 def user_details(userid):
-    with sqlite3.connect(DB) as con:
-        cur = con.cursor()
-        cur.execute(
-            '''SELECT
-      u.user_id,
-      u.fname,
-      b.spot_id,
-      COALESCE(us.spots_used,   0) AS spots_used,
-      COALESCE(us.spots_in_use, 0) AS spots_in_use,
-      CAST(
-        (julianday(COALESCE(b.end_time, CURRENT_TIMESTAMP))
-         - julianday(b.start_time))
-        * 24 * 60 * 60
-      AS INTEGER) AS duration_seconds,
-      b.status
-    FROM User AS u
+    user = user_history(userid)
+    print("\n\n")
+    j = 0
+    for i in user:
+        print(j, i)
+        j += 1
 
-    -- first compute per-user counts:
-    LEFT JOIN (
-      SELECT
-        v.user_id,
-        SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END) AS spots_used,
-        SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END) AS spots_in_use,
-        b.status
-      FROM Vehicles AS v
-      LEFT JOIN Bookings AS b
-        ON v.vehicle_id = b.vehicle_id
-      GROUP BY v.user_id
-    ) AS us
-      ON u.user_id = us.user_id
-
-    -- then bring in each vehicle-booking to show spot_id + duration      
-    LEFT JOIN Vehicles AS v
-      ON u.user_id = v.user_id
-    LEFT JOIN Bookings AS b
-      ON v.vehicle_id = b.vehicle_id
-
-      where u.user_id = ?
-    ;
-
-        ''', (userid,)
-        )
-
-    user = cur.fetchall()
     return render_template('userDetails.html', user=user)
-
-
-def user_history(userid):
-    with sqlite3.connect(DB) as con:
-        cur = con.cursor()
-        cur.execute(
-            '''SELECT
-      b.booking_id,
-      u.user_id,
-      u.fname,
-      b.spot_id,
-      v.vehicle_number,
-      COALESCE(us.spots_used,   0) AS spots_used,
-      COALESCE(us.spots_in_use, 0) AS spots_in_use,
-      CAST(
-        (julianday(COALESCE(b.end_time, CURRENT_TIMESTAMP))
-         - julianday(b.start_time))
-        * 24 * 60 * 60
-      AS INTEGER) AS duration_seconds,
-      b.status,
-      round(b.duration_hours, 2)
-    FROM User AS u
-
-    -- first compute per-user counts:
-    LEFT JOIN (
-      SELECT
-        v.user_id,
-        SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END) AS spots_used,
-        SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END) AS spots_in_use,
-        b.status
-      FROM Vehicles AS v
-      LEFT JOIN Bookings AS b
-        ON v.vehicle_id = b.vehicle_id
-      GROUP BY v.user_id
-    ) AS us
-      ON u.user_id = us.user_id
-
-    -- then bring in each vehicle-booking to show spot_id + duration      
-    LEFT JOIN Vehicles AS v
-      ON u.user_id = v.user_id
-    LEFT JOIN Bookings AS b
-      ON v.vehicle_id = b.vehicle_id
-
-      where u.user_id = ?
-    ;
-
-        ''', (userid,)
-        )
-        return cur.fetchall()
-
-
-def get_users():
-    with sqlite3.connect(DB) as con:
-        cur = con.cursor()
-        cur.execute(
-            '''SELECT 
-        u.user_id,
-        u.fname,
-        u.email,
-        u.age,
-        u.gender,
-        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END), 0) AS spots_used,
-        COALESCE(SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END), 0) AS spots_in_use
-    FROM User AS u
-    LEFT JOIN Vehicles AS v
-        ON u.user_id = v.user_id
-    LEFT JOIN Bookings AS b
-        ON v.vehicle_id = b.vehicle_id
-    GROUP BY
-        u.user_id,
-        u.fname,
-        u.email,
-        u.age,
-        u.gender;
-    
-        '''
-        )
-        return cur.fetchall()
 
 
 @app.route('/dashboard/<int:userid>')
 def dashboard(userid):
-    print(userid)
-    det = user_history(userid)
+    det = in_progress(userid)
     lots = get_lots()
-    print(det)
     return render_template('dashboard.html', lots=lots, details=det, userid=userid)
 
 
@@ -701,7 +584,11 @@ def get_bookings():
 # RESERVATION-----------------------------------------------------------------------------------------------------
 @app.route('/user/spot/<int:spotid>', methods=['GET', 'POST'])
 def reservation_details(spotid):
-    det = user_history(session.get('user_id'))
+    det = in_progress(session.get('user_id'))
+    print("THE USER DETAILS:\n\n", det, "\nspotid = ", spotid)
+    print("DET: ", det[0][3])
+    for d in det:
+        print(d)
     for d in det:
         if d[3] == spotid:
             spot = d
@@ -753,83 +640,267 @@ def reservation_details(spotid):
 
 @app.route('/user/bill/<int:spotid>', methods=['GET', 'POST'])
 def bill_details(spotid):
-    det = user_history(session.get('user_id'))
-    for d in det:
-        if d[3] == spotid:
-            spot = d
-            break
+    details = for_bill(session.get('user_id'), spotid)
+    return render_template('billDisplay.html', spot=details)
+
+
+@app.route('/user/history/<int:userid>', methods=['GET', 'POST'])
+def booking_history_user(userid):
+    det = completed(userid)
+    print(det)
+    return render_template('reservationHistory.html', details=det, userid=userid)
+
+@app.route('/user/complete_history/<int:userid>', methods=['GET', 'POST'])
+def booking_history_user_all(userid):
+    det = get_all_user_bookings(userid)
+    return render_template('reservationHistoryAll.html', details=det, userid=userid)
+
+
+def user_history(userid):
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute(
+            '''
+                SELECT
+                    b.booking_id,
+                    v.vehicle_number,
+                    v.user_id,
+                    b.spot_id,
+                    u.fname,
+                    pl.address,
+                    pl.pin_code,
+                    b.status,
+                    b.start_time,
+                    b.end_time,
+                    pl.price_per_hour,
+                    ROUND(b.duration_hours, 2),
+                    ROUND(b.total_amount, 2),
+                    COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END), 0) AS spots_used,
+                    COALESCE(SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END), 0) AS spots_in_use,
+                    CAST(
+                        (julianday(COALESCE(b.end_time, CURRENT_TIMESTAMP)) - julianday(b.start_time)) * 24 * 60 * 60
+                        AS INTEGER
+                    ) AS duration_seconds
+
+                FROM User AS u
+
+                -- Per-user usage summary
+                LEFT JOIN (
+                    SELECT
+                        v.user_id,
+                        SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END) AS spots_used,
+                        SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END) AS spots_in_use,
+                        b.status
+                    FROM Vehicles AS v
+                    LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+                    GROUP BY v.user_id
+                ) AS us ON u.user_id = us.user_id
+
+                -- Join to vehicles and bookings
+                LEFT JOIN Vehicles AS v ON u.user_id = v.user_id
+                LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+
+                -- Join from Bookings -> ParkingSpots -> ParkingLots
+                LEFT JOIN ParkingSpots AS s ON b.spot_id = s.spot_id
+                LEFT JOIN ParkingLots AS pl ON s.lot_id = pl.lot_id
+
+                WHERE v.user_id = ?;
+        ''', (userid,)
+        )
+        data = cur.fetchall()
+        print(data)
+    return data
+
+
+def for_bill(userid, spotid):
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute(
+            '''
+                SELECT
+                    b.booking_id,
+                    v.vehicle_number,
+                    v.user_id,
+                    b.spot_id,
+                    u.fname,
+                    pl.address,
+                    pl.pin_code,
+                    b.status,
+                    b.start_time,
+                    b.end_time,
+                    pl.price_per_hour,
+                    ROUND(b.duration_hours, 2),
+                    ROUND(b.total_amount, 2),
+                    COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END), 0) AS spots_used,
+                    COALESCE(SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END), 0) AS spots_in_use,
+                    CAST(
+                        (julianday(COALESCE(b.end_time, CURRENT_TIMESTAMP)) - julianday(b.start_time)) * 24 * 60 * 60
+                        AS INTEGER
+                    ) AS duration_seconds
+
+                FROM User AS u
+
+                -- Per-user usage summary
+                LEFT JOIN (
+                    SELECT
+                        v.user_id,
+                        SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END) AS spots_used,
+                        SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END) AS spots_in_use,
+                        b.status
+                    FROM Vehicles AS v
+                    LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+                    GROUP BY v.user_id
+                ) AS us ON u.user_id = us.user_id
+
+                -- Join to vehicles and bookings
+                LEFT JOIN Vehicles AS v ON u.user_id = v.user_id
+                LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+
+                -- Join from Bookings -> ParkingSpots -> ParkingLots
+                LEFT JOIN ParkingSpots AS s ON b.spot_id = s.spot_id
+                LEFT JOIN ParkingLots AS pl ON s.lot_id = pl.lot_id
+
+                WHERE v.user_id = ? and b.spot_id = ?;
+        ''', (userid, spotid)
+        )
+        data = cur.fetchone()
+        return data
+
+
+def get_users():
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute(
+            '''SELECT 
+        u.user_id,
+        u.fname,
+        u.email,
+        u.age,
+        u.gender,
+        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END), 0) AS spots_used,
+        COALESCE(SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END), 0) AS spots_in_use
+    FROM User AS u
+    LEFT JOIN Vehicles AS v
+        ON u.user_id = v.user_id
+    LEFT JOIN Bookings AS b
+        ON v.vehicle_id = b.vehicle_id
+    GROUP BY
+        u.user_id,
+        u.fname,
+        u.email,
+        u.age,
+        u.gender;
+
+        '''
+        )
+        return cur.fetchall()
+
+
+def in_progress(userid):
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute(
+            '''
+SELECT
+    b.booking_id,
+    v.vehicle_number,
+    u.user_id,
+    b.spot_id,
+    pl.address,
+    pl.pin_code,
+    b.status,
+    b.start_time,
+    b.end_time,
+    pl.price_per_hour,
+    CAST(
+        (julianday(COALESCE(b.end_time, CURRENT_TIMESTAMP)) - julianday(b.start_time)) * 24 * 60 * 60
+        AS INTEGER
+    ) AS duration_seconds
+
+FROM User AS u
+
+-- Per-user usage summary
+LEFT JOIN (
+    SELECT
+        v.user_id,
+        SUM(CASE WHEN b.status = 'Completed' THEN 1 ELSE 0 END) AS spots_used,
+        SUM(CASE WHEN b.status = 'Booked'    THEN 1 ELSE 0 END) AS spots_in_use,
+        b.status
+    FROM Vehicles AS v
+    LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+    GROUP BY v.user_id
+) AS us ON u.user_id = us.user_id
+
+-- Join to vehicles and bookings
+LEFT JOIN Vehicles AS v ON u.user_id = v.user_id
+LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+
+-- Join from Bookings -> ParkingSpots -> ParkingLots
+LEFT JOIN ParkingSpots AS s ON b.spot_id = s.spot_id
+LEFT JOIN ParkingLots AS pl ON s.lot_id = pl.lot_id
+
+WHERE u.user_id = ? and b.status = ?;
+        ''', (userid, 'Booked')
+        )
+        return cur.fetchall()
+
+def completed(userid):
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
         cur.execute('''
-        SELECT ps.price_per_hour
-        FROM ParkingLots ps join ParkingSpots s
-        WHERE ps.lot_id = s.lot_id and s.spot_id = ?
-        ''', (spot[3],))
-        price_per_hour = cur.fetchone()[0]
+            SELECT
+                b.booking_id,
+                v.vehicle_number,
+                v.user_id,
+                b.spot_id,
+                pl.address,
+                pl.pin_code,
+                b.status,
+                b.start_time,
+                b.end_time,
+                pl.price_per_hour,
+                ROUND(b.duration_hours, 2),
+                ROUND(b.total_amount, 2),
+                CAST(
+                    (julianday(COALESCE(b.end_time, CURRENT_TIMESTAMP)) - julianday(b.start_time)) * 24 * 60 * 60
+                    AS INTEGER
+                ) AS duration_seconds
+            FROM User AS u
+            LEFT JOIN Vehicles AS v ON u.user_id = v.user_id
+            LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+            LEFT JOIN ParkingSpots AS s ON b.spot_id = s.spot_id
+            LEFT JOIN ParkingLots AS pl ON s.lot_id = pl.lot_id
+            WHERE u.user_id = ? AND b.status = ?
+            ORDER BY b.start_time DESC;
+        ''', (userid, 'Completed'))
+        return cur.fetchall()
 
-        cur.execute('''
-        SELECT duration_hours
-        FROM Bookings
-        WHERE booking_id = ?
-        ''', (spot[0],))
-
-        hours = cur.fetchone()[0]
-        total_amount = price_per_hour * hours
-
-        cur.execute('''
-                            UPDATE Bookings
-                            SET total_amount = ?
-                            WHERE spot_id= ?
-                        ''', (total_amount, spot[3]))
-
-        cur.execute('''
-                SELECT start_time, end_time, duration_hours
-                FROM Bookings
-                WHERE booking_id = ?
-                ''', (spot[0],))
-        data = cur.fetchone()
-        spot = list(spot)
-        spot.extend(data)
-        spot.append(round(total_amount, 2))
-        spot.append(price_per_hour)
-        con.commit()
-    return render_template('billDisplay.html', spot=spot)
-
-
-@app.route('/user/history/<int:spotid>', methods=['GET', 'POST'])
-def booking_history_user(spotid):
-    det = user_history(session.get('user_id'))
-    for d in det:
-        if d[3] == spotid:
-            spot = d
-            break
-
+def get_all_user_bookings(userid):
     with sqlite3.connect(DB) as con:
         cur = con.cursor()
         cur.execute('''
-        SELECT ps.price_per_hour, ps.address, ps.pin_code
-        FROM ParkingLots ps join ParkingSpots s
-        WHERE ps.lot_id = s.lot_id and s.spot_id = ?
-        ''', (spot[3],))
-        price_per_hour, address, pincode = cur.fetchone()
-
-        cur.execute('''
-                SELECT start_time, end_time, total_amount
-                FROM Bookings
-                WHERE booking_id = ?
-                ''', (spot[0],))
-        data = cur.fetchone()
-        spot = list(spot)
-        spot.extend((price_per_hour, address, pincode))
-        spot.extend(data)
-        con.commit()
-        print("\n\n")
-        j = 0
-        for i in spot:
-            print(j, i)
-            j += 1
-
-    return render_template('reservationHistory.html', row=spot)
+            SELECT
+                b.booking_id,
+                v.vehicle_number,
+                v.user_id,
+                b.spot_id,
+                pl.address,
+                pl.pin_code,
+                b.status,
+                b.start_time,
+                b.end_time,
+                pl.price_per_hour,
+                ROUND(b.duration_hours, 2),
+                ROUND(b.total_amount, 2)
+            FROM User AS u
+            LEFT JOIN Vehicles AS v ON u.user_id = v.user_id
+            LEFT JOIN Bookings AS b ON v.vehicle_id = b.vehicle_id
+            LEFT JOIN ParkingSpots AS s ON b.spot_id = s.spot_id
+            LEFT JOIN ParkingLots AS pl ON s.lot_id = pl.lot_id
+            WHERE u.user_id = ? AND b.booking_id IS NOT NULL
+            ORDER BY b.start_time DESC;
+        ''', (userid,))
+        return cur.fetchall()
 
 
 init_db()
