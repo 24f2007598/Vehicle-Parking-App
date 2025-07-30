@@ -389,7 +389,13 @@ def user_details(userid):
 def dashboard(userid):
     det = in_progress(userid)
     lots = get_lots()
-    return render_template('dashboard.html', lots=lots, details=det, userid=userid)
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute('''
+        select fname from user where user_id = ?''', (userid,))
+        name= cur.fetchone()[0].capitalize()
+
+    return render_template('dashboard.html', lots=lots, details=det, userid=userid, username=name)
 
 
 @app.route('/summary')
@@ -532,7 +538,7 @@ def book_lot(lotid):
                 ''', (spotid, vhid))
                 con.commit()
                 return render_template(
-                    'bookSpots.html', lot=lot
+                    'bookSpots.html', lot=lot, userid=session.get('user_id')
                 )
 
     return render_template(

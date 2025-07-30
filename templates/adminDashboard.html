@@ -2,155 +2,209 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        nav.nav {
+            margin-bottom: 20px;
+        }
+        nav.nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        h1, h4 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        table {
+            background-color: white;
+        }
+        .section {
+            margin-bottom: 60px;
+        }
+        .btn {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href = "{{url_for('admin_home')}}">Home</a>
-    <a href = "{{url_for('admin_dashboard')}}">Dashboard</a>
-    <a href = "{{url_for('admin_search')}}">Search</a>
-    <a href = "{{url_for('home')}}">Logout</a>
-  </nav>
-  
+
+<nav class="nav">
+    <a href="{{ url_for('admin_home') }}">Home</a>
+    <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin_search') }}">Search</a>
+    <a href="{{ url_for('home') }}">Logout</a>
+</nav>
+
+<div class="container">
     <h1>Dashboard</h1>
-    <h1>Welcome, {{name}}</h1>
+    <h2>Welcome, {{ name }}</h2>
 
-<a href="{{ url_for('parking_history_all') }}" class="btn btn-primary"> View Parking History</a>
+    <a href="{{ url_for('parking_history_all') }}" class="btn btn-primary">View Parking History</a>
 
+    <!-- User Details -->
+    <div class="section">
+        <h4>User Details</h4>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Spots Used</th>
+                    <th>Spots In Use</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>{{ user[3] }}</td>
+                    <td>{{ user[4] }}</td>
+                    <td>{{ user[5] }}</td>
+                    <td>{{ user[6] }}</td>
+                    <td>
+                        <form method="get" action="{{ url_for('user_details', userid=user[0]) }}">
+                            <button type="submit" class="btn btn-sm btn-info">View Details</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-  <h4>User Details</h4>
-<table border="1">
-    <tr>
-        <th>User ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Age</th>
-        <th>Gender</th>
-        <th>Number of Spots Used In The Past</th>
-        <th>Number of Spots In Use</th>
+    <!-- All Lots -->
+    <div class="section">
+        <h4>All Lots</h4>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Lot ID</th>
+                    <th>Address</th>
+                    <th>Pincode</th>
+                    <th>Price/hr</th>
+                    <th>Max Spots</th>
+                    <th>Created At</th>
+                    <th>Free Spots</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lot in lots %}
+                <tr>
+                    <td>{{ lot[0] }}</td>
+                    <td>{{ lot[1] }}</td>
+                    <td>{{ lot[2] }}</td>
+                    <td>{{ lot[3] }}</td>
+                    <td>{{ lot[4] }}</td>
+                    <td>{{ lot[5] }}</td>
+                    <td>{{ lot[6] }}</td>
+                    <td>
+                        <form method="get" action="{{ url_for('edit_lot', lotid=lot[0]) }}">
+                            <button type="submit" class="btn btn-sm btn-warning">Edit</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('create_lot') }}" class="btn btn-success">Add Lot</a>
+    </div>
 
-    </tr>
-    {% for user in users %}
-    <tr>
-            <td>{{ user[0] }}</td>
-            <td>{{ user[1] }}</td>
-            <td>{{ user[2] }}</td>
-            <td>{{ user[3] }}</td>
-            <td>{{ user[4] }}</td>
-            <td>{{ user[5] }}</td>
-            <td>{{ user[6] }}</td>
-                <td>
-                <form method="get" action="{{ url_for('user_details', userid=user[0]) }}">
-                    <button type="submit">
-                      VIEW DETAILS
-                    </button>
-                  </form>
-            </td>
+    <!-- All Spots -->
+    <div class="section">
+        <h4>All Spots</h4>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Spot ID</th>
+                    <th>Lot ID</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for spot in spots %}
+                <tr>
+                    <td>{{ spot[0] }}</td>
+                    <td>{{ spot[1] }}</td>
+                    <td>{{ spot[2] }}</td>
+                    <td>
+                        <form method="get" action="{{ url_for('spot_details', spotid=spot[0]) }}">
+                            <button type="submit" class="btn btn-sm btn-info">View Details</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-    </tr>
-    {% endfor %}
-</table>
+    <!-- All Vehicles -->
+    <div class="section">
+        <h4>All Vehicles</h4>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Vehicle ID</th>
+                    <th>User ID</th>
+                    <th>Vehicle Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vh in vhs %}
+                <tr>
+                    <td>{{ vh[0] }}</td>
+                    <td>{{ vh[1] }}</td>
+                    <td>{{ vh[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-
-<!--lots-->
-    <h1>All Lots</h1>
-<table border="1">
-    <tr>
-        <th>Lot ID</th>
-        <th>Address</th>
-        <th>Pincode</th>
-        <th>Price (Per hr)</th>
-        <th>Max Number of Parking Spots</th>
-        <th>Time Stamp</th>
-        <th>Free Spots</th>
-    </tr>
-    {% for lot in lots %}
-    <tr>
-            <td>{{ lot[0] }}</td>
-            <td>{{ lot[1] }}</td>
-            <td>{{ lot[2] }}</td>
-            <td>{{ lot[3] }}</td>
-            <td>{{ lot[4] }}</td>
-            <td>{{ lot[5] }}</td>
-            <td>{{ lot[6] }}</td>
-
-            <td>
-                <form method="get" action="{{ url_for('edit_lot', lotid=lot[0]) }}">
-                    <button type="submit">
-                      EDIT
-                    </button>
-                  </form>
-            </td>
-    </tr>
-    {% endfor %}
-</table>
-    <h4><a href = "{{url_for('create_lot')}}">ADD LOT</a></h4>
-
-
-<!--spots-->
-    <h1>All Spots</h1>
-<table border="1">
-    <tr>
-        <th>Spot ID</th>
-        <th>Lot ID</th>
-        <th>status</th>
-    </tr>
-    {% for spot in spots %}
-    <tr>
-            <td>{{ spot[0] }}</td>
-            <td>{{ spot[1] }}</td>
-            <td>{{ spot[2] }}</td>
-        <td>
-                <form method="get" action="{{ url_for('spot_details', spotid=spot[0]) }}">
-                    <button type="submit">
-                      VIEW DETAILS
-                    </button>
-                  </form>
-            </td>
-    </tr>
-
-    {% endfor %}
-</table>
-
-<!--vehicles-->
-<table border="1">
-    <tr>
-        <th>Vehicle ID</th>
-        <th>User ID</th>
-        <th>Vehicle Number</th>
-
-    </tr>
-    {% for vh in vhs %}
-    <tr>
-            <td>{{ vh[0] }}</td>
-            <td>{{ vh[1] }}</td>
-            <td>{{ vh[2] }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<!--bookings-->
-<table border="1">
-    <tr>
-        <th>Booking ID</th>
-        <th>Spot ID</th>
-        <th>Vehicle ID</th>
-        <th>Start Time</th>
-        <th>End Time</th>
-        <th>Status</th>
-    </tr>
-    {% for bk in bks %}
-    <tr>
-            <td>{{ bk[0] }}</td>
-            <td>{{ bk[1] }}</td>
-            <td>{{ bk[2] }}</td>
-            <td>{{ bk[3] }}</td>
-            <td>{{ bk[4] }}</td>
-            <td>{{ bk[5] }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
+    <!-- All Bookings -->
+    <div class="section">
+        <h4>All Bookings</h4>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Spot ID</th>
+                    <th>Vehicle ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bk in bks %}
+                <tr>
+                    <td>{{ bk[0] }}</td>
+                    <td>{{ bk[1] }}</td>
+                    <td>{{ bk[2] }}</td>
+                    <td>{{ bk[3] }}</td>
+                    <td>{{ bk[4] }}</td>
+                    <td>{{ bk[5] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 </body>
 </html>

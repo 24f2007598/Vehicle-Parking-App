@@ -2,34 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>login</title>
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 40px;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .login-container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-label {
+            font-weight: bold;
+        }
+        .form-error {
+            color: red;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
+
+<div class="login-container">
+    <h2 class="text-center mb-4">Login</h2>
 
     {% for msg in form.email.errors %}
-    <div>{{msg}}</div>
+        <div class="form-error">{{ msg }}</div>
     {% endfor %}
-
     {% for msg in form.passwd.errors %}
-    <div>{{msg}}</div>
+        <div class="form-error">{{ msg }}</div>
     {% endfor %}
 
-    <form action=http://127.0.0.1:5000/login method = 'post'>
+    <form action="http://127.0.0.1:5000/login" method="post">
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.passwd.label(class="form-label") }}
+            {{ form.passwd(class="form-control") }}
+        </div>
+        <div class="text-center">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
 
-    <table>
-        <tr>
-            <td>{{form.email.label}}</td>
-            <td>{{form.email}}</td>
-        </tr>
-            <tr>
-            <td>{{form.passwd.label}}</td>
-            <td>{{form.passwd}}</td>
-        </tr>
-        <tr>
-            <td>{{form.submit}}</td>
-        </tr>
-</table>
-</form>
 </body>
 </html>

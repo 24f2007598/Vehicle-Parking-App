@@ -2,28 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>reservation</title>
+    <title>Reservation Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 40px;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+        }
+        h3 {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+    </style>
 </head>
 <body>
-<h3>Details of Reserved Spot</h3>
 
-<table border="1">
-    <tr>
-        <th>Spot ID</th>
-        <th>Vehicle Number</th>
-        <th>Total Parked Duration</th>
-        <th>Time</th>
-    </tr>
-    <tr>
-            <td>{{ spot[3] }}</td>
-            <td>{{ spot[4] }}</td>
-            <td>{{ spot[6] }}</td>
-            <td>{{ spot[7] }}</td>
-</table>
-    <form action="{{ url_for('reservation_details', spotid=spot[3]) }}" method = 'post'>
-    <button type="submit" name="action" value="complete">RELEASE SPOT</button>
-    <button type="submit" name="action" value="back">BACK</button>
-</form>
+<div class="container">
+    <h3>Details of Reserved Spot</h3>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Spot ID</th>
+                <th>Vehicle Number</th>
+                <th>Address</th>
+                <th>Total Parked Duration (in seconds)</th>
+                <th>Termination Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ spot[3] }}</td>
+                <td>{{ spot[1] }}</td>
+                <td>{{ spot[4] }} -- {{ spot[5] }}</td>
+                <td>{{ spot[10] }}</td>
+                <td>{{ spot[8] }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form action="{{ url_for('reservation_details', spotid=spot[3]) }}" method="post" class="btn-group">
+        <button type="submit" name="action" value="complete" class="btn btn-success">Release Spot</button>
+        <button type="submit" name="action" value="back" class="btn btn-secondary">Back</button>
+    </form>
+</div>
 
 </body>
 </html>
