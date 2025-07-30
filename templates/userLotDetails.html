@@ -2,52 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lots</title>
+    <title>Lot Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 40px;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .back-link {
+            margin-top: 20px;
+        }
+        .flash-msg {
+            color: red;
+            font-weight: bold;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<h2>Lot-{{lot[0]}}</h2>
 
-<!-- flash messages -->
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul style="color:red;">
-        {% for msg in messages %}
-          <li>{{ msg }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+<div class="container">
+    <h2 class="mb-4">Lot #{{ lot[0] }} Details</h2>
 
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flash-msg">
+                {% for msg in messages %}
+                    <li>{{ msg }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 
-<table border="1">
-    <tr>
-        <th>Lot ID</th>
-        <th>Address</th>
-        <th>Pincode</th>
-        <th>Price (Per hr)</th>
-        <th>Max Number of Parking Spots</th>
-        <th>Time Stamp</th>
-        <th>Free Spots</th>
-    </tr>
-    <tr>
-            <td>{{ lot[0] }}</td>
-            <td>{{ lot[1] }}</td>
-            <td>{{ lot[2] }}</td>
-            <td>{{ lot[3] }}</td>
-            <td>{{ lot[4] }}</td>
-            <td>{{ lot[5] }}</td>
-            <td>{{ lot[6] }}</td>
-    </tr>
-</table>
+    <!-- Lot Info Table -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Lot ID</th>
+                <th>Address</th>
+                <th>Pincode</th>
+                <th>Price (Per hr)</th>
+                <th>Max Spots</th>
+                <th>Created At</th>
+                <th>Free Spots</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ lot[0] }}</td>
+                <td>{{ lot[1] }}</td>
+                <td>{{ lot[2] }}</td>
+                <td>{{ lot[3] }}</td>
+                <td>{{ lot[4] }}</td>
+                <td>{{ lot[5] }}</td>
+                <td>{{ lot[6] }}</td>
+            </tr>
+        </tbody>
+    </table>
 
+    <!-- Booking Form -->
+    <form method="post" action="{{ url_for('book_lot', lotid=lot[0]) }}" class="mt-4">
+        <div class="mb-3">
+            <label for="vehicle_number" class="form-label">Vehicle Number:</label>
+            <input type="text" id="vehicle_number" name="vehicle_number" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success">Confirm Booking</button>
+    </form>
 
-  <form method="post" action="{{ url_for('book_lot', lotid=lot[0]) }}">
-    <label for="vehicle_number">Vehicle Number:</label>
-    <input type="text" id="vehicle_number" name="vehicle_number" required>
-    <button type="submit">Confirm Booking</button>
-  </form>
-
-  <p><a href="{{ url_for('dashboard', userid=userid) }}">← Back to Dashboard</a></p>
+    <!-- Back Link -->
+    <p class="back-link">
+        <a href="{{ url_for('dashboard', userid=userid) }}" class="btn btn-secondary mt-3">← Back to Dashboard</a>
+    </p>
+</div>
 
 </body>
 </html>

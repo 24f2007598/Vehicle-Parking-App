@@ -389,13 +389,7 @@ def user_details(userid):
 def dashboard(userid):
     det = in_progress(userid)
     lots = get_lots()
-    with sqlite3.connect(DB) as con:
-        cur = con.cursor()
-        cur.execute('''
-        select fname from user where user_id = ?''', (userid,))
-        name= cur.fetchone()[0].capitalize()
-
-    return render_template('dashboard.html', lots=lots, details=det, userid=userid, username=name)
+    return render_template('dashboard.html', lots=lots, details=det, userid=userid)
 
 
 @app.route('/summary')
@@ -571,8 +565,6 @@ def get_bookings():
 @app.route('/user/spot/<int:spotid>', methods=['GET', 'POST'])
 def reservation_details(spotid):
     det = in_progress(session.get('user_id'))
-    print("THE USER DETAILS:\n\n", det, "\nspotid = ", spotid)
-    print("DET: ", det[0][3])
     for d in det:
         print(d)
     for d in det:
@@ -580,7 +572,6 @@ def reservation_details(spotid):
             spot = d
             break
     if request.method == 'POST':
-        print("WASSSUP")
         action = request.form.get('action')
         if action == "complete":
             with sqlite3.connect(DB) as con:
