@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, session, url_for, flash
 import sqlite3
 from flask_wtf import Form
+from sqlalchemy.dialects.mssql.information_schema import columns
 from wtforms import TextAreaField, PasswordField, IntegerField, RadioField, SubmitField, EmailField, FloatField
 from wtforms.validators import ValidationError, DataRequired, Length, NumberRange
 import re
@@ -314,10 +315,7 @@ def spot_details(spotid):
 # ADMIN -----------------------------------------------------------------------------
 @app.route('/admin/home')
 def admin_home():
-    boxes = 10  # total boxes
-    spots = 9
-    return render_template('adminHome.html', boxes=boxes,
-                           spots=spots, L=status)
+    return render_template('adminHome.html')
 
 
 @app.route('/admin/dashboard')
@@ -336,6 +334,11 @@ def admin_dashboard():
 def admin_search():
     return render_template('search.html')
 
+
+@app.route('/user/parking/history/', methods=['GET', 'POST'])
+def parking_history_all():
+    rows, columns = all_parking()
+    return render_template('parkingViewAdmin.html', rows=rows, columns=columns)
 
 # USERS -----------------------------------------------------------------------------
 # Insert User Data into DB
@@ -371,43 +374,16 @@ def defaultHome():
 def home():
     return render_template('home.html')
 
-
-@app.route('/test', methods=['GET', 'POST'])
-def test():
-    # initialize only once
-    if 'boxes_data' not in session:
-        session['boxes_data'] = status
-
-    boxes_data = session['boxes_data']
-    selected = None
-
-    if request.method == 'POST':
-        sel = request.form.get('selected')
-        if sel:
-            # parse "btn-b-i"
-            parts = sel.split('-')
-            if len(parts) == 3:
-                b, i = map(int, parts[1:])
-                # guard: only accept if it really was an "A"
-                if boxes_data[b][i] == 'A':
-                    selected = sel
-
-    return render_template('test.html',
-                           boxes_data=boxes_data,
-                           selected=selected)
-
-
 @app.route('/users/<int:userid>')
 def user_details(userid):
-    user = user_history(userid)
-    print("\n\n")
-    j = 0
-    for i in user:
-        print(j, i)
-        j += 1
+    user = get_all_user_bookings(userid)
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute('''
+        select fname, user_id from user where user_id = ?''', (userid,))
+        name, userid = cur.fetchone()
 
-    return render_template('userDetails.html', user=user)
-
+    return render_template('userDetails.html', details=user, username=name, userid=userid)
 
 @app.route('/dashboard/<int:userid>')
 def dashboard(userid):
@@ -534,17 +510,21 @@ def book_lot(lotid):
                     'UPDATE ParkingLots SET free_spots = ? WHERE lot_id = ?',
                     (fr, lotid)
                 )
-                usr_email = session.get('email')
-                cur.execute('''Select user_id from User where email = ?''', (usr_email,))
-                data = cur.fetchone()
-                usrid = data[0]
-                cur.execute('''
-                    INSERT INTO Vehicles (user_id, vehicle_number)
-                    VALUES (?, ?)
-                ''', (usrid, vehicle))
-                cur.execute('''Select vehicle_id from Vehicles''')
-                data = cur.fetchall()
-                vhid = data[-1][0]
+                usrid = session.get('user_id')
+                if not usrid:
+                    flash('Session expired. Please login again.')
+                    return redirect(url_for('login'))
+
+                cur.execute('SELECT vehicle_id FROM Vehicles WHERE user_id = ? AND vehicle_number = ?',
+                            (usrid, vehicle))
+                existing_vehicle = cur.fetchone()
+
+                if existing_vehicle:
+                    vhid = existing_vehicle[0]
+                else:
+                    # Insert new vehicle and get its ID
+                    cur.execute('INSERT INTO Vehicles (user_id, vehicle_number) VALUES (?, ?)', (usrid, vehicle))
+                    vhid = cur.lastrowid  # Us
 
                 cur.execute('''
                     INSERT INTO Bookings (spot_id, vehicle_id)
@@ -901,6 +881,77 @@ def get_all_user_bookings(userid):
             ORDER BY b.start_time DESC;
         ''', (userid,))
         return cur.fetchall()
+
+def all_parking():
+    with sqlite3.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute('''
+SELECT 
+    b.booking_id,
+    b.status AS booking_status,
+    b.start_time,
+    b.end_time,
+    b.duration_hours,
+    b.total_amount,
+    
+    u.user_id,
+    u.fname AS user_name,
+    u.email AS user_email,
+    u.age AS user_age,
+    u.gender AS user_gender,
+    
+    v.vehicle_id,
+    v.vehicle_number,
+    
+    ps.spot_id,
+    ps.status AS spot_status,
+    
+    pl.lot_id,
+    pl.address AS lot_address,
+    pl.pin_code AS lot_pincode,
+    pl.price_per_hour,
+    pl.max_spots AS lot_max_spots,
+    pl.free_spots AS lot_free_spots,
+    pl.created_at AS lot_created_at,
+    
+    CASE 
+        WHEN b.end_time IS NOT NULL THEN 
+            ROUND((julianday(b.end_time) - julianday(b.start_time)) * 24, 2)
+        ELSE 
+            ROUND((julianday('now') - julianday(b.start_time)) * 24, 2)
+    END AS calculated_duration_hours,
+    
+    CASE 
+        WHEN b.end_time IS NOT NULL THEN 
+            ROUND(((julianday(b.end_time) - julianday(b.start_time)) * 24) * pl.price_per_hour, 2)
+        ELSE 
+            ROUND(((julianday('now') - julianday(b.start_time)) * 24) * pl.price_per_hour, 2)
+    END AS calculated_amount,
+    
+    CASE 
+        WHEN b.status = 'Booked' THEN 'Active Booking'
+        WHEN b.status = 'Completed' THEN 'Completed'
+        WHEN b.status = 'Cancelled' THEN 'Cancelled'
+        ELSE 'Unknown'
+    END AS booking_summary
+
+FROM Bookings b
+
+INNER JOIN Vehicles v ON b.vehicle_id = v.vehicle_id
+
+INNER JOIN User u ON v.user_id = u.user_id
+
+INNER JOIN ParkingSpots ps ON b.spot_id = ps.spot_id
+
+INNER JOIN ParkingLots pl ON ps.lot_id = pl.lot_id
+
+ORDER BY b.start_time DESC;
+ 
+    ''')
+        rows = cur.fetchall()
+        columns = [description[0] for description in cur.description]
+        return rows, columns
+
 
 
 init_db()

@@ -5,39 +5,56 @@
     <title>Lots</title>
 </head>
 <body>
-<h2>User-{{user[0][2]}}: {{user[0][4]}}</h2>
-<h5>Spots Already Used: {{ user[0][-3] }}</h5>
-<h5>Spots In Use: {{ user[0][-2] }}</h5>
+<h2>User-{{userid}}: {{username}}</h2>
 
 <table border="1">
-    <tr>
-                <th>Booking ID</th>
-                <th>Vehicle Number</th>
-                <th>Spot ID</th>
-                <th>Address</th>
-                <th>STATUS</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Price (Per Hour)</th>a
-                <th>Duration (in Hours)</th>
-                <th>Price (in Rupees)</th>
-    </tr>
-{% for row in user %}
-    <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[3] }}</td>
-                <td>{{ row[5] }} - {{ row[6] }}</td>
-                <td>{{ row[7] }}</td>
-                <td>{{ row[8] }}</td>
-                <td>{{ row[9] }}</td>
-                <td>{{ row[10] }}</td>
-                <td>{{ row[11] }}</td>
-                <td>{{ row[12] }}</td>
-    </tr>
-    {% endfor %}
+    {% if details %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Vehicle Number</th>
+                    <th>Spot ID</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Price/Hour (₹)</th>
+                    <th>Duration (sec)</th>
+                    <th>Price (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in details %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }} - {{ row[5] }}</td>
+                    <td>{{ row[6] }}</td>
+                    <td>{{ row[7] }}</td>
+                    <td>{{ row[8] or 'Ongoing'}}</td>
+                    <td>{{ row[9] }}</td>
+                    <td>{{ row[10] }}</td>
+                    {% if row[6] == 'Completed' %}
+                        <td>{{ row[11] }}</td>
+                    {% else %}
+                        <td>Still Parked</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-info">No booking records found.</div>
+        {% endif %}
+
 
 </table>
+    <div class="text-center mt-3">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+</div>
 
 </body>
 </html>
